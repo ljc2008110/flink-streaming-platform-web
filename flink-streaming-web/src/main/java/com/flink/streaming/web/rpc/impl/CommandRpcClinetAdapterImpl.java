@@ -16,9 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 /**
  * @author zhuhuipei
@@ -108,20 +106,19 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
      */
     private void clearLogStream(InputStream stream, final String threadName) {
         WaitForPoolConfig.getInstance().getThreadPoolExecutor().execute(() -> {
-                    BufferedInputStream reader = null;
+            BufferedReader br = null;
                     try {
                         Thread.currentThread().setName(threadName);
-                        reader = new BufferedInputStream(stream);
-                        int bytesRead = 0;
-                        byte[] buffer = new byte[1024];
-                        while ((bytesRead = reader.read(buffer)) != -1) {
-                            String result = new String(buffer, 0, bytesRead, SystemConstants.CODE_UTF_8);
+                        br = new BufferedReader(new InputStreamReader(stream));
+                        String line = null;
+                        while ((line = br.readLine()) != null) {
+                            String result = line;
                             log.info(result);
                         }
                     } catch (Exception e) {
                         log.error("threadName={}", threadName);
                     } finally {
-                        this.close(reader, stream, "clearLogStream");
+                        this.close(br, stream, "clearLogStream");
                     }
                 }
         );
@@ -137,20 +134,18 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
     private String clearInfoLogStream(InputStream stream, StringBuilder localLog, Long jobRunLogId) {
 
         String appId = null;
-        BufferedInputStream reader = null;
+        BufferedReader br = null;
         try {
             long lastTime = System.currentTimeMillis();
-            byte[] buffer = new byte[1024];
-            int bytesRead = 0;
-            reader = new BufferedInputStream(stream);
-            while ((bytesRead = reader.read(buffer)) != -1) {
-                String result = new String(buffer, 0, bytesRead, SystemConstants.CODE_UTF_8);
-                log.info(result);
+            String line = null;
+            br = new BufferedReader(new InputStreamReader(stream));
+            while ((line=br.readLine())!=null) {
+                log.info(line);
+                String result = line;
                 if (StringUtils.isEmpty(appId) && result.contains(SystemConstant.QUERY_JOBID_KEY_WORD)) {
                     appId = result.replace(SystemConstant.QUERY_JOBID_KEY_WORD, SystemConstant.SPACE).trim();
                     localLog.append("[job-submitted-success] 解析得到的appId是:").append(appId).append(SystemConstant.LINE_FEED);
-                }
-                if (StringUtils.isEmpty(appId) && result.contains(SystemConstant.QUERY_JOBID_KEY_WORD_BACKUP)) {
+                } else if (StringUtils.isEmpty(appId) && result.contains(SystemConstant.QUERY_JOBID_KEY_WORD_BACKUP)) {
                     appId = result.replace(SystemConstant.QUERY_JOBID_KEY_WORD_BACKUP, SystemConstant.SPACE).trim();
                     localLog.append("[Job has been submitted with JobID] 解析得到的appId是:").append(appId).append(SystemConstant.LINE_FEED);
                 }
@@ -168,7 +163,7 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
             log.error("[clearInfoLogStream] is error", e);
             throw new RuntimeException("clearInfoLogStream is error");
         } finally {
-            this.close(reader, stream, "clearInfoLogStream");
+            this.close(br, stream, "clearInfoLogStream");
 
         }
     }
@@ -180,7 +175,7 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
      * @date 2021/3/28
      * @time 12:53
      */
-    private void close(BufferedInputStream reader, InputStream stream, String typeName) {
+    private void close(BufferedReader reader, InputStream stream, String typeName) {
         if (reader != null) {
             try {
                 reader.close();
