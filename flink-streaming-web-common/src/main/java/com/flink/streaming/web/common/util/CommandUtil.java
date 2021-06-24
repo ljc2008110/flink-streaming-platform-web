@@ -48,7 +48,7 @@ public class CommandUtil {
         switch (jobConfigDTO.getJobTypeEnum()) {
             case SQL_BATCH:
             case SQL_STREAMING:
-                command.append("-c  ").append(APP_CLASS_NAME).append(" ");
+                command.append(" -c ").append(APP_CLASS_NAME).append(" ");
                 command.append(jobRunParamDTO.getSysHome()).append(SystemConstant.JARVERSION);
                 command.append(" -sql ").append(jobRunParamDTO.getSqlPath()).append(" ");
                 if (StringUtils.isNotEmpty(jobRunParamDTO.getFlinkCheckpointConfig())) {
@@ -57,7 +57,7 @@ public class CommandUtil {
                 command.append(" -type ").append(jobConfigDTO.getJobTypeEnum().getCode()).append(" ");
                 break;
             case JAR:
-                command.append("-c  ").append(jobConfigDTO.getCustomMainClass()).append(" ");
+                command.append(" -c ").append(jobConfigDTO.getCustomMainClass()).append(" ");
                 command.append(jobRunParamDTO.getMainJarPath());
                 command.append(" ").append(jobConfigDTO.getCustomArgs());
                 break;
