@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.net.URL;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -179,16 +180,26 @@ public class JobBaseServiceAOImpl implements JobBaseServiceAO {
                         .append(SystemConstant.LINE_FEED);
 
                 try {
-                    String command = "";
 
                     //如果是自定义提交jar模式下载文件到本地
                     this.downJar(jobRunParamDTO, jobConfigDTO);
 
+                    //jobmanager path for current job (deploy mode)
+                    String jmPath = systemConfigService.getFlinkHttpAddress(jobConfigDTO.getDeployModeEnum());
+
+                    if(StringUtils.isEmpty(jmPath)) {
+                        throw new BizException("未配置该运行模式指定的flink jobmanager的rest地址。");
+                    } else {
+                        URL url = new URL(jmPath);
+                        jmPath = new StringBuilder(url.getHost()).append(":").append(url.getPort()).toString();
+                    }
+
+                    String command = "";
 
                     switch (jobConfigDTO.getDeployModeEnum()) {
                         case YARN_PER:
                             //1、构建执行命令
-                            command = CommandUtil.buildRunCommandForYarnCluster(jobRunParamDTO,
+                            command = CommandUtil.buildRunCommandForYarnCluster(jmPath, jobRunParamDTO,
                                     jobConfigDTO, savepointPath);
                             //2、提交任务
                             appId = this.submitJobForYarn(command, jobConfigDTO, localLog);
@@ -196,7 +207,7 @@ public class JobBaseServiceAOImpl implements JobBaseServiceAO {
                         case LOCAL:
                         case STANDALONE:
                             //1、构建执行命令
-                            command = CommandUtil.buildRunCommandForCluster(jobRunParamDTO, jobConfigDTO, savepointPath);
+                            command = CommandUtil.buildRunCommandForCluster(jmPath, jobRunParamDTO, jobConfigDTO, savepointPath);
                             //2、提交任务
                             appId = this.submitJobForStandalone(command, jobConfigDTO, localLog);
 

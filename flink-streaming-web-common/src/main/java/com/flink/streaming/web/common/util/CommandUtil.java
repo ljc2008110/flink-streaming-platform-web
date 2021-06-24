@@ -26,7 +26,7 @@ public class CommandUtil {
      * @date 2020/11/1
      * @time 09:59
      */
-    public static String buildRunCommandForCluster(JobRunParamDTO jobRunParamDTO,
+    public static String buildRunCommandForCluster(String jmPath, JobRunParamDTO jobRunParamDTO,
                                                    JobConfigDTO jobConfigDTO, String savepointPath) throws Exception {
         StringBuilder command = new StringBuilder();
         command.append(jobRunParamDTO.getFlinkBinPath()).append(" run -d ");
@@ -36,6 +36,7 @@ public class CommandUtil {
         }
 
         if (jobConfigDTO.getDeployModeEnum() == DeployModeEnum.STANDALONE) {
+            command.append(" -m ").append(jmPath).append(" ");
             command.append(jobConfigDTO.getFlinkRunConfig());
         }
 
@@ -63,7 +64,7 @@ public class CommandUtil {
                 break;
         }
 
-        log.info("buildRunCommandForLocal runCommand={}", command.toString());
+        log.info("buildRunCommandForCluster runCommand={}", command.toString());
         return command.toString();
     }
 
@@ -74,13 +75,14 @@ public class CommandUtil {
      * @date 2020-09-18
      * @time 00:57
      */
-    public static String buildRunCommandForYarnCluster(JobRunParamDTO jobRunParamDTO,
+    public static String buildRunCommandForYarnCluster(String jmPath, JobRunParamDTO jobRunParamDTO,
                                                        JobConfigDTO jobConfigDTO, String savepointPath) throws Exception {
         StringBuilder command = new StringBuilder();
         command.append(jobRunParamDTO.getFlinkBinPath()).append(" run ");
         if (StringUtils.isNotEmpty(savepointPath)) {
             command.append(" -s ").append(savepointPath).append(" ");
         }
+        command.append(" -m ").append(jmPath).append(" ");
         command.append(jobRunParamDTO.getFlinkRunParam()).append(" ");
         command.append(" -ynm ").append(JobConfigDTO.buildRunName(jobConfigDTO.getJobName())).append(" ");
         command.append(" -yd -m yarn-cluster ").append(" ");
