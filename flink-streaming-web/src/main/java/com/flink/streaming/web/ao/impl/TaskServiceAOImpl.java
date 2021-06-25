@@ -245,7 +245,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
         }
 
         //变更任务状态
-        log.error("发现本地任务状态和yarn上不一致,准备自动修复任务状态 jobStandaloneInfo={}", jobStandaloneInfo);
+        log.error("发现本地任务状态和Cluster上不一致,准备自动修复任务状态 jobStandaloneInfo={}", jobStandaloneInfo);
         JobConfigDTO jobConfig = JobConfigDTO.bulidStop(jobConfigDTO.getId());
         jobConfigService.updateJobConfigById(jobConfig);
 

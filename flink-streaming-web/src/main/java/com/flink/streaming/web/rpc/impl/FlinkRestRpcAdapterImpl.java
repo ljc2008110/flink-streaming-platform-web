@@ -42,9 +42,13 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
 
             log.info("[getJobInfoForStandaloneByAppId]请求参数 appId={} url={}", appId, url);
             res = HttpUtil.buildRestTemplate(HttpUtil.TIME_OUT_1_M).getForObject(url, String.class);
-            log.info("[getJobInfoForStandaloneByAppId]请求参数结果: res={}", res);
+            log.debug("[getJobInfoForStandaloneByAppId]请求参数结果: res={}", res);
             if (StringUtils.isEmpty(res)) {
                 return null;
+            } else {
+                // 避免日志过长，截取关注的信息info打印
+                int startIdx = res.indexOf("\"isStoppable");
+                log.info("[getJobInfoForStandaloneByAppId]请求参数结果: res={}", res.substring(startIdx, startIdx + 128));
             }
             jobStandaloneInfo = JSON.parseObject(res, JobStandaloneInfo.class);
             return jobStandaloneInfo;
