@@ -24,7 +24,7 @@ public interface IpStatusMapper {
 
     /**
      * 排序后获得id最的一条记录并且
-     * where is_deleted = 0 AND STATUS = 1   and last_time >= DATE_ADD(NOW(),INTERVAL -61 SECOND)
+     * where is_deleted = 0 AND STATUS = 1   and last_time >= DATE_ADD(NOW(),INTERVAL -119 SECOND)
      *
      * @author zhuhuipei
      * @date 2020-09-22

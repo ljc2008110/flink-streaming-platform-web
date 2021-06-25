@@ -51,7 +51,7 @@
         from ip_status
         WHERE
         is_deleted = 0
-        AND STATUS = 1   and  last_time >= DATE_ADD(NOW(),INTERVAL -61 SECOND)
+        AND STATUS = 1   and  last_time >= DATE_ADD(NOW(),INTERVAL -119 SECOND)
         ORDER BY
         id DESC
         limit 1
