@@ -16,14 +16,12 @@ public class SystemConstants {
 
     public static final String COOKIE_NAME_SESSION_ID = "flink-streaming-platform-web-sessionid";
 
-
     public static final String STATUS_RUNNING = "RUNNING";
-
+    public static final String STATUS_FINISHED = "FINISHED";
 
     public static final String USER_NAME_TASK_AUTO = "task-auto";
 
     public static final String CODE_UTF_8 = "UTF-8";
-
 
     public static final String DEFAULT_SAVEPOINT_ROOT_PATH = "hdfs:///flink/savepoint/flink-streaming-platform-web/";
 
