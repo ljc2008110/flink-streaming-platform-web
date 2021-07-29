@@ -84,7 +84,7 @@ public class JobRunLogVO implements Serializable {
     private String clinetJobUrl;
 
 
-    public static JobRunLogVO toVO(JobRunLogDTO jobRunLogDTO, boolean isLocalLog,Integer port) {
+    public static JobRunLogVO toVO(JobRunLogDTO jobRunLogDTO, boolean isLocalLog, Integer port) {
         if (jobRunLogDTO == null) {
             return null;
         }
@@ -103,9 +103,19 @@ public class JobRunLogVO implements Serializable {
         if (isLocalLog) {
             jobRunLogVO.setLocalLog(jobRunLogDTO.getLocalLog());
         }
-        if (port!=null && StringUtils.isNotEmpty(jobRunLogDTO.getRunIp())){
+
+        return jobRunLogVO;
+    }
+
+    public static JobRunLogVO toVOWithJogLog(JobRunLogDTO jobRunLogDTO, boolean isLocalLog,
+                                             String serverName, Integer serverPort) {
+        if (jobRunLogDTO == null) {
+            return null;
+        }
+        JobRunLogVO jobRunLogVO = toVO(jobRunLogDTO, isLocalLog, null);
+        if (!StringUtils.isEmpty(serverName)){
             jobRunLogVO.setClinetJobUrl(String.format("http://%s:%s/log/getFlinkLocalJobLog",
-                    jobRunLogDTO.getRunIp(),port));
+                    serverName, serverPort));
         }
 
         return jobRunLogVO;
@@ -118,7 +128,7 @@ public class JobRunLogVO implements Serializable {
         List<JobRunLogVO> list = new ArrayList<>();
 
         for (JobRunLogDTO jobRunLog : jobRunLogList) {
-            list.add(JobRunLogVO.toVO(jobRunLog, isLocalLog,null));
+            list.add(JobRunLogVO.toVO(jobRunLog, isLocalLog, null));
         }
         return list;
 

@@ -51,8 +51,10 @@ public class JobRunLogController extends BaseController {
 
     @RequestMapping(value = "/detailLog")
     public String sysConfig(ModelMap modelMap, Long id) {
-        modelMap.put("jobRunLogDetail", JobRunLogVO.toVO(jobRunLogService.getDetailLogById(id),
-                YN.Y.getCode(),customConfig.getWebPort()));
+        String serverName = getServletRequest().getServerName();
+        int serverPort = getServletRequest().getServerPort();
+        modelMap.put("jobRunLogDetail", JobRunLogVO.toVOWithJogLog(jobRunLogService.getDetailLogById(id),
+                YN.Y.getCode(), serverName, serverPort));
         return "screen/job_log/detailLogPage";
     }
 }
