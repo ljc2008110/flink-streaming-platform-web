@@ -25,7 +25,7 @@ public class FlinkYarnRestUriConstants {
 
     public final static String URI_CHECKPOINTS_JOB = "jobs/%s/checkpoints";
 
-
+    public final static String URI_SAVEPOINTS_JOB = "jobs/%s/savepoints";
 
     public static String getUriJobsForYarn(String appId) {
         return rootUriForYarn(appId) + URI_JOBS;
@@ -60,6 +60,9 @@ public class FlinkYarnRestUriConstants {
         return String.format(URI_CHECKPOINTS_JOB, appId);
     }
 
+    public static String getUriSavepoints(String appId) {
+        return String.format(URI_SAVEPOINTS_JOB, appId);
+    }
 
     public static void main(String[] args) {
         System.out.println(FlinkYarnRestUriConstants.getUriJobsForYarn("xxxx"));

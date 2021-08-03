@@ -61,8 +61,11 @@ public class JobConfigApiController extends BaseController {
     }
 
     @RequestMapping("/stop")
-    public RestResult<String> stop(Long id) {
+    public RestResult<String> stop(Long id, Boolean isSavePoint) {
         try {
+            if(null != isSavePoint && isSavePoint) {
+                savepoint(id);
+            }
             this.getJobServerAO(id).stop(id, this.getUserName());
         } catch (BizException e) {
             log.warn("停止失败 id={}", id, e);

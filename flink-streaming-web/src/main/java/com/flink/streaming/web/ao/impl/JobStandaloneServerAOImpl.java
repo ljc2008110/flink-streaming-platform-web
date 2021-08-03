@@ -117,14 +117,22 @@ public class JobStandaloneServerAOImpl implements JobServerAO {
         }
 
         //1、 执行savepoint
+        String targetDirectory = null;
         try {
             //yarn模式下和集群模式下统一目录是hdfs:///flink/savepoint/flink-streaming-platform-web/
             //LOCAL模式本地模式下保存在flink根目录下
-            String targetDirectory = SystemConstants.DEFAULT_SAVEPOINT_ROOT_PATH + id;
-            if (DeployModeEnum.LOCAL.equals(jobConfigDTO.getDeployModeEnum())) {
-                targetDirectory = "savepoint/" + id;
+            targetDirectory = jobConfigDTO.getCheckPointPath();
+            if(targetDirectory == null) {
+                targetDirectory = SystemConstants.DEFAULT_SAVEPOINT_ROOT_PATH;
+                if (DeployModeEnum.LOCAL.equals(jobConfigDTO.getDeployModeEnum())) {
+                    targetDirectory = "savepoint/";
+                }
+            } else {
+                targetDirectory = targetDirectory.replace("checkpoints", "savepoints");
             }
 
+            targetDirectory = targetDirectory + id;
+            log.info("savepoint path: {}", targetDirectory);
             commandRpcClinetAdapter.savepointForPerCluster(jobConfigDTO.getJobId(), targetDirectory);
         } catch (Exception e) {
             log.error(MessageConstants.MESSAGE_008, e);

@@ -1,6 +1,14 @@
 function stop(id) {
+    if (confirm("是否执行savepoint？")) {
+        stopSP(id, true);
+    } else {
+        stopSP(id, false);
+    }
+}
+function stopSP(id, isSavePoint) {
     $.post("../api/stop", {
-            id: id
+            id: id,
+            isSavePoint: isSavePoint
         },
         function (data, status) {
             if (data!=null && data.success){

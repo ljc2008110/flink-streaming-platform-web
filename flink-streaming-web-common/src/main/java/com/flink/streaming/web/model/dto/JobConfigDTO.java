@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author zhuhuipei
@@ -124,6 +126,16 @@ public class JobConfigDTO implements Serializable {
     private String creator;
 
     private String editor;
+
+    public String getCheckPointPath() {
+        Pattern pattern = Pattern.compile("-checkpointDir\\s(\\S*)");
+        Matcher matcher = pattern.matcher(flinkCheckpointConfig);
+        if(matcher.find()) {
+            return matcher.group(1);
+        }
+
+        return null;
+    }
 
     public static JobConfig toEntity(JobConfigDTO jobConfigDTO) {
         if (jobConfigDTO == null) {
