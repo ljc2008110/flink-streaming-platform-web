@@ -2,6 +2,7 @@ package com.flink.streaming.web.scheduler;
 
 import com.flink.streaming.web.ao.TaskServiceAO;
 import com.flink.streaming.web.service.IpStatusService;
+import com.flink.streaming.web.service.SystemConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -29,6 +30,9 @@ public class SchedulerTask {
 
     @Autowired
     private TaskServiceAO taskServiceAO;
+
+    @Autowired
+    private SystemConfigService systemConfigService;
 
     /**
      * 每个1分钟更新一次FlinkWeb心跳时间
@@ -100,8 +104,13 @@ public class SchedulerTask {
      */
     @Async("taskExecutor")
     @Scheduled(cron = "0 0 */1 * * ?")
-//    @Scheduled(cron = "0 */10 * * * ?")
+  //@Scheduled(cron = "0 */1 * * * ?")
     public void autoSavePoint() {
+        if (!systemConfigService.autoSavepoint()){
+            log.info("#####没有开启自动savePoint#######");
+            return;
+        }
+
         if (!ipStatusService.isLeader()) {
             return;
         }
