@@ -32,7 +32,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-09-22
  * @time 19:59
  */
@@ -69,7 +69,16 @@ public class TaskServiceAOImpl implements TaskServiceAO {
 
     @Override
     public void checkJobStatus() {
-        List<JobConfigDTO> jobConfigDTOList = jobConfigService.findJobConfigByStatus(JobConfigStatus.RUN.getCode());
+        List<JobConfigDTO> jobConfigDTOList = jobConfigService.findJobConfigByStatus(
+                JobConfigStatus.RUN.getCode(),
+                JobConfigStatus.FAIL.getCode(),
+                JobConfigStatus.FAILING.getCode(),
+                JobConfigStatus.CANCELED.getCode(),
+                JobConfigStatus.CANCELING.getCode(),
+                JobConfigStatus.STARTING.getCode(),
+                JobConfigStatus.RESTARTING.getCode(),
+                JobConfigStatus.SUSPENDED.getCode(),
+                JobConfigStatus.UNKNOWN.getCode());
         if (CollectionUtils.isEmpty(jobConfigDTOList)) {
             log.warn("当前配置中没有运行的任务");
             return;
@@ -77,7 +86,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
         for (JobConfigDTO jobConfigDTO : jobConfigDTOList) {
             if (JobTypeEnum.SQL_BATCH.equals(jobConfigDTO.getJobTypeEnum())){
                 log.warn("批任务不需要状态校验");
-                return;
+                continue;
             }
             List<AlarmTypeEnum> alarmTypeEnumList = jobAlarmConfigService.findByJobId(jobConfigDTO.getId());
             switch (jobConfigDTO.getDeployModeEnum()) {
@@ -217,11 +226,11 @@ public class TaskServiceAOImpl implements TaskServiceAO {
 
         //变更任务状态
         log.error("发现本地任务状态和yarn上不一致,准备自动修复本地web任务状态  {}", jobConfigDTO);
-        JobConfigDTO jobConfig = JobConfigDTO.bulidStop(jobConfigDTO.getId());
+        JobConfigDTO jobConfig = JobConfigDTO.buildStop(jobConfigDTO.getId());
         jobConfigService.updateJobConfigById(jobConfig);
 
         //发送告警并且自动拉起任务
-        this.alermAndAutoJob(alarmTypeEnumList,
+        this.alarmAndAutoJob(alarmTypeEnumList,
                 SystemConstants.buildDingdingMessage(" 检测到任务停止运行 任务名称：" +
                         jobConfigDTO.getJobName()), jobConfigDTO, DeployModeEnum.YARN_PER);
 
@@ -240,19 +249,39 @@ public class TaskServiceAOImpl implements TaskServiceAO {
         JobStandaloneInfo jobStandaloneInfo = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(jobConfigDTO.getJobId(),
                 jobConfigDTO.getDeployModeEnum());
 
-        if (jobStandaloneInfo != null && SystemConstants.STATUS_RUNNING.equals(jobStandaloneInfo.getState())) {
-            return;
+        /*
+         * 如果flink不存在该任务，则直接置为STOP状态及后续操作。
+         * 1. flink返回job为非STOP状态：
+         *   1.a) 如果状态相同，直接返回；
+         *   1.b) 如果状态不同，则进行修改；
+         * 2. flink返回job状态为STOP状态：
+         *   2.a) 更新状态为STOP，并做报警及任务重新拉起操作。
+         */
+        String flinkJobStatus = null;
+        if (jobStandaloneInfo == null) {
+            flinkJobStatus = "CANCELED";
+        } else {
+            flinkJobStatus = jobStandaloneInfo.getState();
         }
 
-        //变更任务状态
-        log.error("发现本地任务状态和Cluster上不一致,准备自动修复任务状态 jobStandaloneInfo={}", jobStandaloneInfo);
-        JobConfigDTO jobConfig = JobConfigDTO.bulidStop(jobConfigDTO.getId());
-        jobConfigService.updateJobConfigById(jobConfig);
+        JobConfigStatus status = jobConfigDTO.getStatus();
+        JobConfigStatus flinkStatus = JobConfigDTO.convertStatus(flinkJobStatus);
 
-        //发送告警并且自动拉起任务
-        this.alermAndAutoJob(alarmTypeEnumList,
-                SystemConstants.buildDingdingMessage(" 检测到任务停止运行 任务名称：" +
-                        jobConfigDTO.getJobName()), jobConfigDTO, DeployModeEnum.STANDALONE);
+        if (!status.equals(flinkStatus)) {
+            //变更任务状态
+            log.info("发现本地任务状态和Cluster上不一致，准备自动更新任务状态 jobStandaloneInfo={}", jobStandaloneInfo);
+            JobConfigDTO jobConfig = JobConfigDTO.buildConfig(jobConfigDTO.getId(), flinkStatus);
+            jobConfigService.updateJobConfigById(jobConfig);
+        }
+
+        if (flinkStatus.willAlarm()) {
+            String content = new StringBuilder(" 检测到任务状态异常：").append(flinkJobStatus).append("，任务名称：")
+                    .append(jobConfigDTO.getJobName()).toString();
+            //发送告警并且自动拉起任务
+            this.alarmAndAutoJob(alarmTypeEnumList,
+                    SystemConstants.buildDingdingMessage(content),
+                    jobConfigDTO, DeployModeEnum.STANDALONE);
+        }
     }
 
 
@@ -264,7 +293,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
      * @date 2021/2/28
      * @time 19:50
      */
-    private void alermAndAutoJob(List<AlarmTypeEnum> alarmTypeEnumList, String cusContent,
+    private void alarmAndAutoJob(List<AlarmTypeEnum> alarmTypeEnumList, String cusContent,
                                  JobConfigDTO jobConfigDTO, DeployModeEnum deployModeEnum) {
 
 
@@ -289,8 +318,8 @@ public class TaskServiceAOImpl implements TaskServiceAO {
             }
         }
         //自动拉起
-        if (alarmTypeEnumList.contains(AlarmTypeEnum.AUTO_START_JOB)) {
-            log.info("校验任务不存在,开始自动拉起 JobConfigId={}", callbackDTO.getJobConfigId());
+        if (alarmTypeEnumList.contains(AlarmTypeEnum.AUTO_START_JOB) && jobConfigDTO.getStatus().willRestart()) {
+            log.info("校验任务不存在，开始自动拉起 JobConfigId={}", callbackDTO.getJobConfigId());
             try {
                 switch (deployModeEnum) {
                     case YARN_PER:
@@ -310,7 +339,6 @@ public class TaskServiceAOImpl implements TaskServiceAO {
         }
 
     }
-
 
     /**
      * 钉钉告警

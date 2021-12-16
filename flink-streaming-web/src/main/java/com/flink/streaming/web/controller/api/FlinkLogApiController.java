@@ -11,10 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.Objects;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2021/5/5
  * @time 10:23
  */
@@ -29,9 +30,7 @@ public class FlinkLogApiController {
     @RequestMapping(value = "/getFlinkLocalJobLog")
     public String  getFlinkLocalJobLog(HttpServletResponse response){
         try {
-            String fileName=String.format("flink-%s-client-%s.log", LinuxInfoUtil.loginName(), IpUtil.getHostName());
-            String flinkName=systemConfigService.getSystemConfigByKey(SysConfigEnum.FLINK_HOME.getKey());
-            String logPath=flinkName+"log/"+fileName;
+            String logPath = getLogFileName();
             log.info("日志文件地址 logPath={}",logPath);
             File file = new File(logPath);
             InputStream fis = new BufferedInputStream(new FileInputStream(file));
@@ -52,5 +51,31 @@ public class FlinkLogApiController {
         return "ok";
     }
 
+    private String getLogFileName() {
 
+        String hostName = IpUtil.getHostName();
+        if (hostName.contains(".")) {
+            hostName = hostName.substring(0, hostName.indexOf("."));
+        }
+        String flinkDir = systemConfigService.getSystemConfigByKey(SysConfigEnum.FLINK_HOME.getKey());
+        String logPath = flinkDir + "log/";
+        File logDir = new File(logPath);
+        if (logDir.exists()) {
+            File[] files = logDir.listFiles(pathname -> {return pathname.getName().contains("client");});
+            File logFile = null;
+            for (File file : files) {
+                if (Objects.isNull(logFile)) {
+                    logFile = file;
+                } else if (file.getName().contains(hostName) && !logFile.getName().contains(hostName)) {
+                    logFile = file;
+                } else if (file.getName().contains(hostName) && logFile.getName().contains(hostName)
+                        && file.lastModified() > logFile.lastModified()) {
+                    logFile = file;
+                }
+            }
+            return Objects.isNull(logFile) ? "logfile_is_not_found" : logFile.getAbsolutePath();
+        }
+
+        return "flink_dir_not_config";
+    }
 }

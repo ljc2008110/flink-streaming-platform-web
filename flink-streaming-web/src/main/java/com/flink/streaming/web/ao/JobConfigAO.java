@@ -4,7 +4,7 @@ import com.flink.streaming.web.model.dto.JobConfigDTO;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2021/2/28
  * @time 11:25
  */

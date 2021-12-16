@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import com.flink.streaming.web.enums.AlarmLogStatusEnum;
-import com.flink.streaming.web.model.dto.AlartLogDTO;
+import com.flink.streaming.web.model.dto.AlarmLogDTO;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-09-25
  * @time 23:34
  */
@@ -57,42 +57,42 @@ public class AlartLogVO {
     private String createTime;
 
 
-    public static AlartLogVO toVO(AlartLogDTO alartLogDTO) {
-        if (alartLogDTO == null) {
+    public static AlartLogVO toVO(AlarmLogDTO alarmLogDTO) {
+        if (alarmLogDTO == null) {
             return null;
         }
         AlartLogVO alartLogVO = new AlartLogVO();
-        alartLogVO.setId(alartLogDTO.getId());
-        alartLogVO.setJobConfigId(alartLogDTO.getJobConfigId());
-        alartLogVO.setJobName(alartLogDTO.getJobName());
-        alartLogVO.setMessage(alartLogDTO.getMessage());
-        alartLogVO.setStatus(alartLogDTO.getAlarmLogStatusEnum().getCode());
-        if (alartLogDTO.getAlarMLogTypeEnum() != null) {
-            alartLogVO.setTypeDesc(alartLogDTO.getAlarMLogTypeEnum().getDesc());
+        alartLogVO.setId(alarmLogDTO.getId());
+        alartLogVO.setJobConfigId(alarmLogDTO.getJobConfigId());
+        alartLogVO.setJobName(alarmLogDTO.getJobName());
+        alartLogVO.setMessage(alarmLogDTO.getMessage());
+        alartLogVO.setStatus(alarmLogDTO.getAlarmLogStatusEnum().getCode());
+        if (alarmLogDTO.getAlarMLogTypeEnum() != null) {
+            alartLogVO.setTypeDesc(alarmLogDTO.getAlarMLogTypeEnum().getDesc());
         }
-        if (alartLogDTO.getAlarmLogStatusEnum() != null) {
-            if (AlarmLogStatusEnum.SUCCESS.equals(alartLogDTO.getAlarmLogStatusEnum())) {
-                alartLogVO.setStatusDesc(alartLogDTO.getAlarmLogStatusEnum().getDesc());
+        if (alarmLogDTO.getAlarmLogStatusEnum() != null) {
+            if (AlarmLogStatusEnum.SUCCESS.equals(alarmLogDTO.getAlarmLogStatusEnum())) {
+                alartLogVO.setStatusDesc(alarmLogDTO.getAlarmLogStatusEnum().getDesc());
             } else {
-                alartLogVO.setStatusDesc("<span style=\"color: red\">" + alartLogDTO.getAlarmLogStatusEnum().getDesc() + "</span>");
+                alartLogVO.setStatusDesc("<span style=\"color: red\">" + alarmLogDTO.getAlarmLogStatusEnum().getDesc() + "</span>");
             }
 
         }
-        alartLogVO.setFailLog(alartLogDTO.getFailLog());
-        alartLogVO.setCreateTime(DateUtil.format(alartLogDTO.getCreateTime(), DatePattern.NORM_DATETIME_PATTERN));
+        alartLogVO.setFailLog(alarmLogDTO.getFailLog());
+        alartLogVO.setCreateTime(DateUtil.format(alarmLogDTO.getCreateTime(), DatePattern.NORM_DATETIME_PATTERN));
 
         return alartLogVO;
     }
 
 
-    public static List<AlartLogVO> toListVO(List<AlartLogDTO> alartLogDTOList) {
-        if (CollectionUtil.isEmpty(alartLogDTOList)) {
+    public static List<AlartLogVO> toListVO(List<AlarmLogDTO> alarmLogDTOList) {
+        if (CollectionUtil.isEmpty(alarmLogDTOList)) {
             return Collections.emptyList();
         }
 
         List<AlartLogVO> list = new ArrayList<>();
-        for (AlartLogDTO alartLogDTO : alartLogDTOList) {
-            AlartLogVO alartLogVO = AlartLogVO.toVO(alartLogDTO);
+        for (AlarmLogDTO alarmLogDTO : alarmLogDTOList) {
+            AlartLogVO alartLogVO = AlartLogVO.toVO(alarmLogDTO);
             if (alartLogVO != null) {
                 list.add(alartLogVO);
             }

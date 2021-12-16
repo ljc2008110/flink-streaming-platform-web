@@ -4,7 +4,7 @@ import lombok.Getter;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2015/7/11
  * @time 上午10:49
  */

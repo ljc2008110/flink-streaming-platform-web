@@ -1,12 +1,12 @@
 package com.flink.streaming.web.service.impl;
 
 import com.flink.streaming.web.enums.YN;
-import com.flink.streaming.web.mapper.AlarmLogMapper;
-import com.flink.streaming.web.model.dto.AlartLogDTO;
+import com.flink.streaming.web.mapper.AlartLogMapper;
+import com.flink.streaming.web.model.dto.AlarmLogDTO;
 import com.flink.streaming.web.model.dto.PageModel;
 import com.flink.streaming.web.model.entity.AlartLog;
 import com.flink.streaming.web.model.param.AlartLogParam;
-import com.flink.streaming.web.service.AlartLogService;
+import com.flink.streaming.web.service.AlarmLogService;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -15,50 +15,50 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-09-25
  * @time 21:43
  */
 @Slf4j
 @Service
-public class AlartLogServiceImpl implements AlartLogService {
+public class AlarmLogServiceImpl implements AlarmLogService {
 
 
     @Autowired
-    private AlarmLogMapper alarmLogMapper;
+    private AlartLogMapper alartLogMapper;
 
     @Override
-    public void addAlartLog(AlartLogDTO alartLogDTO) {
-        if (alartLogDTO == null) {
+    public void addAlarmLog(AlarmLogDTO alarmLogDTO) {
+        if (alarmLogDTO == null) {
             return;
         }
-        alarmLogMapper.insert(AlartLogDTO.toEntity(alartLogDTO));
+        alartLogMapper.insert(AlarmLogDTO.toEntity(alarmLogDTO));
     }
 
 
     @Override
-    public AlartLogDTO findLogById(Long id) {
-        return AlartLogDTO.toDTO(alarmLogMapper.selectByPrimaryKey(id));
+    public AlarmLogDTO findLogById(Long id) {
+        return AlarmLogDTO.toDTO(alartLogMapper.selectByPrimaryKey(id));
     }
 
     @Override
-    public PageModel<AlartLogDTO> queryAlartLog(AlartLogParam alartLogParam) {
+    public PageModel<AlarmLogDTO> queryAlartLog(AlartLogParam alartLogParam) {
         if (alartLogParam == null) {
             alartLogParam = new AlartLogParam();
         }
         PageHelper.startPage(alartLogParam.getPageNum(), alartLogParam.getPageSize(), YN.Y.getCode());
 
         //只能查最近30天的
-        Page<AlartLog> page = alarmLogMapper.selectByParam(alartLogParam);
+        Page<AlartLog> page = alartLogMapper.selectByParam(alartLogParam);
         if (page == null) {
             return null;
         }
-        PageModel<AlartLogDTO> pageModel = new PageModel<>();
+        PageModel<AlarmLogDTO> pageModel = new PageModel<>();
         pageModel.setPageNum(page.getPageNum());
         pageModel.setPages(page.getPages());
         pageModel.setPageSize(page.getPageSize());
         pageModel.setTotal(page.getTotal());
-        pageModel.addAll(AlartLogDTO.toListDTO(page.getResult()));
+        pageModel.addAll(AlarmLogDTO.toListDTO(page.getResult()));
         return pageModel;
 
     }

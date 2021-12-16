@@ -3,11 +3,15 @@ package com.flink.streaming.web.common;
 import com.flink.streaming.web.exceptions.BizException;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 系统常量
  *
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-07-13
  * @time 01:33
  */

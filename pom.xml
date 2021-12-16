@@ -18,6 +18,7 @@
         <module>flink-streaming-web-config</module>
         <module>flink-streaming-web-common</module>
         <module>flink-streaming-web-alarm</module>
+        <module>flink-streaming-checkpoint-backup</module>
     </modules>
 
     <name>flink-streaming-platform-web</name>

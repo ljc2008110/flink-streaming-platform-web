@@ -2,7 +2,7 @@ package com.flink.streaming.web.alarm;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-09-23
  * @time 23:59
  */

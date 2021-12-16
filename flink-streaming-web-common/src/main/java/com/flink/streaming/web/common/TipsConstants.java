@@ -2,7 +2,7 @@ package com.flink.streaming.web.common;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2021/3/10
  * @time 21:58
  */

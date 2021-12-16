@@ -12,7 +12,7 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2021/1/17
  * @time 19:56
  */

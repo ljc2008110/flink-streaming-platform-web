@@ -5,9 +5,9 @@ import com.flink.streaming.web.common.RestResult;
 import com.flink.streaming.web.common.SystemConstants;
 import com.flink.streaming.web.controller.web.BaseController;
 import com.flink.streaming.web.enums.SysConfigEnum;
-import com.flink.streaming.web.model.dto.AlartLogDTO;
+import com.flink.streaming.web.model.dto.AlarmLogDTO;
 import com.flink.streaming.web.model.vo.CallbackDTO;
-import com.flink.streaming.web.service.AlartLogService;
+import com.flink.streaming.web.service.AlarmLogService;
 import com.flink.streaming.web.service.SystemConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-07-07
  * @time 22:00
  */
@@ -34,7 +34,7 @@ public class AlartApiController extends BaseController {
     private SystemConfigService systemConfigService;
 
     @Autowired
-    private AlartLogService alartLogService;
+    private AlarmLogService alarmLogService;
 
 
     /**
@@ -105,11 +105,11 @@ public class AlartApiController extends BaseController {
      */
     @RequestMapping("/logErrorInfo")
     public RestResult logErrorInfo(Long id) {
-        AlartLogDTO alartLogDTO = alartLogService.findLogById(id);
-        if (alartLogDTO == null || StringUtils.isEmpty(alartLogDTO.getFailLog())) {
+        AlarmLogDTO alarmLogDTO = alarmLogService.findLogById(id);
+        if (alarmLogDTO == null || StringUtils.isEmpty(alarmLogDTO.getFailLog())) {
             return RestResult.error("没有异常数据");
         }
-        return RestResult.success(alartLogDTO.getFailLog());
+        return RestResult.success(alarmLogDTO.getFailLog());
 
     }
 

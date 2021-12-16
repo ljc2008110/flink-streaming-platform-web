@@ -4,7 +4,7 @@ import com.flink.streaming.web.model.vo.CallbackDTO;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2021/2/21
  * @time 11:38
  */

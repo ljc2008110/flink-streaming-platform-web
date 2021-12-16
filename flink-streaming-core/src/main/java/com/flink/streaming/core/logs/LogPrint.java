@@ -7,7 +7,7 @@ import org.apache.flink.table.api.TableEnvironment;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2021/3/21
  * @time 22:20
  */

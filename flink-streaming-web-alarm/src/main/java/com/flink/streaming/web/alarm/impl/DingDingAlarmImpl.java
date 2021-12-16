@@ -16,7 +16,7 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-09-23
  * @time 01:01
  */

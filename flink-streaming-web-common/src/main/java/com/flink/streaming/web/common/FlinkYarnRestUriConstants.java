@@ -2,7 +2,7 @@ package com.flink.streaming.web.common;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-09-18
  * @time 23:55
  */
@@ -39,6 +39,9 @@ public class FlinkYarnRestUriConstants {
         return URI_JOBS + "/" + appId;
     }
 
+    public static String getUriForJobList() {
+        return URI_JOBS + "/overview";
+    }
 
     public static String getUriCancelForYarn(String appId, String jobId) {
         return getUriJobsForYarn(appId) + "/" + jobId + URI_YARN_CANCEL;

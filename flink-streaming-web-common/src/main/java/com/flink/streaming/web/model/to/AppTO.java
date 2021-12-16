@@ -6,7 +6,7 @@ import lombok.Data;
  * yarn http基本信息
  *
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-08-06
  * @time 23:14
  */

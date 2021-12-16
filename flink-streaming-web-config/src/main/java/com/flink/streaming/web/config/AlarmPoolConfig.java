@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  * 核心线程10个 最大线程100 队列100 公平策略
  * 告警线程池
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2018/9/6
  * @time 下午21:58
  */

@@ -5,7 +5,7 @@ import org.apache.commons.codec.binary.Base64;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-07-13
  * @time 23:13
  */

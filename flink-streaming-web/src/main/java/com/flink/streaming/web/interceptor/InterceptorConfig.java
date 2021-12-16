@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-07-06
  * @time 00:43
  */

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2015/9/6
  * @time 下午5:01
  */
@@ -24,17 +24,14 @@ import org.springframework.stereotype.Component;
 @EnableAsync
 public class SchedulerTask {
 
-
     @Autowired
     private IpStatusService ipStatusService;
-
 
     @Autowired
     private TaskServiceAO taskServiceAO;
 
-
     /**
-     * 每个1分钟更新一次心跳时间
+     * 每个1分钟更新一次FlinkWeb心跳时间
      *
      * @author zhuhuipei
      * @date 2020-09-22
@@ -50,7 +47,6 @@ public class SchedulerTask {
             log.error("心跳检查失败", e);
         }
     }
-
 
     /**
      * 每隔5分钟进行一次一致性校验检查(如果校验失败会进行告警)
@@ -72,7 +68,6 @@ public class SchedulerTask {
             log.error("checkJobStatusByYarn is error", e);
         }
     }
-
 
 //    /**
 //     * 每隔20分钟进行一次对停止任务进行是否在yarn上运行的检查

@@ -6,10 +6,10 @@ import com.flink.streaming.web.alarm.HttpAlarm;
 import com.flink.streaming.web.ao.AlarmServiceAO;
 import com.flink.streaming.web.enums.AlarmLogStatusEnum;
 import com.flink.streaming.web.enums.AlarmLogTypeEnum;
-import com.flink.streaming.web.model.dto.AlartLogDTO;
+import com.flink.streaming.web.model.dto.AlarmLogDTO;
 import com.flink.streaming.web.model.dto.JobRunLogDTO;
 import com.flink.streaming.web.model.vo.CallbackDTO;
-import com.flink.streaming.web.service.AlartLogService;
+import com.flink.streaming.web.service.AlarmLogService;
 import com.flink.streaming.web.service.JobRunLogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-09-25
  * @time 19:50
  */
@@ -27,7 +27,7 @@ public class AlarmServiceAOImpl implements AlarmServiceAO {
 
 
     @Autowired
-    private AlartLogService alartLogService;
+    private AlarmLogService alarmLogService;
 
     @Autowired
     private JobRunLogService jobRunLogService;
@@ -77,22 +77,22 @@ public class AlarmServiceAOImpl implements AlarmServiceAO {
     private void insertLog(boolean isSuccess, Long jobConfigId, String failLog, String content,
                            AlarmLogTypeEnum alarMLogTypeEnum) {
         JobRunLogDTO jobRunLogDTO = jobRunLogService.getDetailLogById(jobConfigId);
-        AlartLogDTO alartLogDTO = new AlartLogDTO();
-        alartLogDTO.setJobConfigId(jobConfigId);
-        alartLogDTO.setAlarMLogTypeEnum(alarMLogTypeEnum);
-        alartLogDTO.setMessage(content);
+        AlarmLogDTO alarmLogDTO = new AlarmLogDTO();
+        alarmLogDTO.setJobConfigId(jobConfigId);
+        alarmLogDTO.setAlarMLogTypeEnum(alarMLogTypeEnum);
+        alarmLogDTO.setMessage(content);
         if (jobRunLogDTO != null) {
-            alartLogDTO.setJobName(jobRunLogDTO.getJobName());
+            alarmLogDTO.setJobName(jobRunLogDTO.getJobName());
         } else {
-            alartLogDTO.setJobName("测试");
+            alarmLogDTO.setJobName("测试");
         }
         if (isSuccess) {
-            alartLogDTO.setAlarmLogStatusEnum(AlarmLogStatusEnum.SUCCESS);
+            alarmLogDTO.setAlarmLogStatusEnum(AlarmLogStatusEnum.SUCCESS);
         } else {
-            alartLogDTO.setAlarmLogStatusEnum(AlarmLogStatusEnum.FAIL);
-            alartLogDTO.setFailLog(failLog);
+            alarmLogDTO.setAlarmLogStatusEnum(AlarmLogStatusEnum.FAIL);
+            alarmLogDTO.setFailLog(failLog);
         }
-        alartLogService.addAlartLog(alartLogDTO);
+        alarmLogService.addAlarmLog(alarmLogDTO);
 
     }
 }

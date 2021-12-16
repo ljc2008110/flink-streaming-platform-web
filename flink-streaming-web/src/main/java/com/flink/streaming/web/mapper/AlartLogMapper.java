@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface AlarmLogMapper {
+public interface AlartLogMapper {
 
 
     int insert(AlartLog alartLog);
@@ -15,8 +15,6 @@ public interface AlarmLogMapper {
 
     AlartLog selectByPrimaryKey(@Param("id") Long id);
 
-
     Page<AlartLog> selectByParam(AlartLogParam alartLogParam);
-
 
 }

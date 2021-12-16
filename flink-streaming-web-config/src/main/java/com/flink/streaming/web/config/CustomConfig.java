@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2021/1/22
  * @time 22:50
  */

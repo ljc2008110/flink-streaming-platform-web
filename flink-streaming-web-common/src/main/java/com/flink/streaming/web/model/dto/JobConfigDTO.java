@@ -1,5 +1,7 @@
 package com.flink.streaming.web.model.dto;
 
+import com.flink.streaming.web.common.FlinkJobStatus;
+import com.flink.streaming.web.common.SystemConstants;
 import com.flink.streaming.web.enums.AlarmTypeEnum;
 import com.flink.streaming.web.enums.DeployModeEnum;
 import com.flink.streaming.web.enums.JobConfigStatus;
@@ -9,10 +11,7 @@ import lombok.Data;
 import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -225,8 +224,7 @@ public class JobConfigDTO implements Serializable {
         return "flink@" + jobName;
     }
 
-
-    public static JobConfigDTO bulidStop(Long id) {
+    public static JobConfigDTO buildStop(Long id) {
         JobConfigDTO jobConfig = new JobConfigDTO();
         jobConfig.setStatus(JobConfigStatus.STOP);
         jobConfig.setEditor("sys_auto");
@@ -235,4 +233,41 @@ public class JobConfigDTO implements Serializable {
         return jobConfig;
     }
 
+    public static JobConfigDTO buildConfig(Long id, JobConfigStatus status) {
+        JobConfigDTO jobConfig = new JobConfigDTO();
+        jobConfig.setStatus(status);
+        jobConfig.setEditor("sys_auto");
+        jobConfig.setId(id);
+        return jobConfig;
+    }
+
+    private static final List<String> FLINK_JOB_STATUS = Arrays.asList(
+            new String[]{
+                    FlinkJobStatus.RUNNING.getStatus(),
+                    FlinkJobStatus.CREATED.getStatus(),
+                    FlinkJobStatus.SUSPENDED.getStatus(),
+                    FlinkJobStatus.RESTARTING.getStatus(),
+                    FlinkJobStatus.FAILED.getStatus(),
+                    FlinkJobStatus.FAILING.getStatus(),
+                    FlinkJobStatus.CANCELED.getStatus(),
+                    FlinkJobStatus.CANCELLING.getStatus(),
+                    FlinkJobStatus.FINISHED.getStatus()
+            });
+    private static final List<JobConfigStatus> SYS_JOB_STATUS = Arrays.asList(
+            new JobConfigStatus[]{
+                    JobConfigStatus.RUN,
+                    JobConfigStatus.STARTING,
+                    JobConfigStatus.SUSPENDED,
+                    JobConfigStatus.RESTARTING,
+                    JobConfigStatus.FAIL,
+                    JobConfigStatus.RUN,
+                    JobConfigStatus.CANCELED,
+                    JobConfigStatus.CANCELING,
+                    JobConfigStatus.FINISHED
+            });
+
+    public static JobConfigStatus convertStatus(String flinkJobStatus) {
+        int index = FLINK_JOB_STATUS.indexOf(flinkJobStatus);
+        return index == -1 ? JobConfigStatus.UNKNOWN : SYS_JOB_STATUS.get(index);
+    }
 }

@@ -4,7 +4,7 @@ package com.flink.streaming.web.common;
  * 系统常量
  *
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-07-13
  * @time 01:33
  */

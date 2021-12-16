@@ -3,9 +3,11 @@ package com.flink.streaming.web.rpc;
 import com.flink.streaming.web.enums.DeployModeEnum;
 import com.flink.streaming.web.rpc.model.JobStandaloneInfo;
 
+import java.util.List;
+
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-09-18
  * @time 23:43
  */
@@ -21,6 +23,11 @@ public interface FlinkRestRpcAdapter {
      */
     JobStandaloneInfo getJobInfoForStandaloneByAppId(String appId, DeployModeEnum deployModeEnum);
 
+    /**
+     * 获取所有任务状态
+     * @return
+     */
+    List<JobStandaloneInfo> getJobStatusListForStandlone(DeployModeEnum deployModeEnum);
 
     /**
      * 基于flink rest API取消任务

@@ -15,9 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-09-18
  * @time 23:43
  */
@@ -27,7 +30,6 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
 
     @Autowired
     private SystemConfigService systemConfigService;
-
 
     @Override
     public JobStandaloneInfo getJobInfoForStandaloneByAppId(String appId, DeployModeEnum deployModeEnum) {
@@ -61,6 +63,39 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
         }
 
         return jobStandaloneInfo;
+    }
+
+    /**
+     * 获取所有任务状态
+     *
+     * @return 返回所有job状态列表
+     */
+    @Override
+    public List<JobStandaloneInfo> getJobStatusListForStandlone(DeployModeEnum deployModeEnum) {
+        List<JobStandaloneInfo> jobStatusList = new ArrayList<>();
+        String res = null;
+        try {
+            String url = HttpUtil.buildUrl(systemConfigService.getFlinkHttpAddress(deployModeEnum),
+                    FlinkYarnRestUriConstants.getUriForJobList());
+
+            log.info("[getJobStatusListForStandlone]请求参数 url={}", url);
+            res = HttpUtil.buildRestTemplate(HttpUtil.TIME_OUT_1_M).getForObject(url, String.class);
+            log.debug("[getJobInfoForStandaloneByAppId]请求参数结果: res={}", res);
+            if (StringUtils.isEmpty(res)) {
+                return null;
+            } else {
+                // 避免日志过长，截取关注的信息info打印
+                int startIdx = res.indexOf("\"isStoppable");
+                log.info("[getJobStatusListForStandlone]请求参数结果: res={}", res);
+                res = JSON.parseObject(res).getString("jobs");
+            }
+            jobStatusList = JSON.parseArray(res, JobStandaloneInfo.class);
+            return jobStatusList;
+        } catch (Exception e) {
+            log.error("json 异常 res={}", res, e);
+        }
+
+        return jobStatusList;
     }
 
 

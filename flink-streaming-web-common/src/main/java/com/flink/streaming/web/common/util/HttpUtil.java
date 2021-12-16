@@ -9,13 +9,12 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2020-08-06
  * @time 23:05
  */
 @Slf4j
 public class HttpUtil {
-
 
     public final static int TIME_OUT_30_S = 1000 * 30;
 
@@ -51,7 +50,7 @@ public class HttpUtil {
     }
 
 
-    public static String buildUrl(String domain,String urn){
+    public static String buildUrl(String domain, String urn){
 
         return new StringBuilder(domain).append(urn).toString();
     }

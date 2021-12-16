@@ -2,7 +2,7 @@ package com.flink.streaming.sql.util;
 
 /**
  * @author zhuhuipei
- * @Description:
+ * @Description
  * @date 2021/4/5
  * @time 10:05
  */
