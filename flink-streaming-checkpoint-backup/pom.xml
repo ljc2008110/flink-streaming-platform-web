@@ -11,5 +11,4 @@
 
     <artifactId>flink-streaming-checkpoint-backup</artifactId>
 
-
 </project>
