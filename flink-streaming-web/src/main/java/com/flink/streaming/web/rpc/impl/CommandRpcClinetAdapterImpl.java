@@ -8,6 +8,7 @@ import com.flink.streaming.web.common.util.CommandUtil;
 import com.flink.streaming.web.config.WaitForPoolConfig;
 import com.flink.streaming.web.enums.DeployModeEnum;
 import com.flink.streaming.web.enums.SysConfigEnum;
+import com.flink.streaming.web.exceptions.BizException;
 import com.flink.streaming.web.rpc.CommandRpcClinetAdapter;
 import com.flink.streaming.web.service.JobRunLogService;
 import com.flink.streaming.web.service.SystemConfigService;
@@ -106,19 +107,19 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
      */
     private void clearLogStream(InputStream stream, final String threadName) {
         WaitForPoolConfig.getInstance().getThreadPoolExecutor().execute(() -> {
-            BufferedReader br = null;
+                BufferedReader reader = null;
                     try {
                         Thread.currentThread().setName(threadName);
-                        br = new BufferedReader(new InputStreamReader(stream));
-                        String line = null;
-                        while ((line = br.readLine()) != null) {
-                            String result = line;
+                    String result = null;
+                    reader = new BufferedReader(new InputStreamReader(stream, SystemConstants.CODE_UTF_8));
+                    //按行读取
+                    while ((result = reader.readLine()) != null) {
                             log.info(result);
                         }
                     } catch (Exception e) {
                         log.error("threadName={}", threadName);
                     } finally {
-                        this.close(br, stream, "clearLogStream");
+                    this.close(reader, stream, "clearLogStream");
                     }
                 }
         );
@@ -134,19 +135,22 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
     private String clearInfoLogStream(InputStream stream, StringBuilder localLog, Long jobRunLogId) {
 
         String appId = null;
-        BufferedReader br = null;
+        BufferedReader reader = null;
         try {
             long lastTime = System.currentTimeMillis();
-            String line = null;
-            br = new BufferedReader(new InputStreamReader(stream));
-            while ((line=br.readLine())!=null) {
-                log.info(line);
-                String result = line;
+            String result = null;
+            reader = new BufferedReader(new InputStreamReader(stream, SystemConstants.CODE_UTF_8));
+            //按行读取
+            while ((result = reader.readLine()) != null) {
+                log.info("read={}", result);
                 if (StringUtils.isEmpty(appId) && result.contains(SystemConstant.QUERY_JOBID_KEY_WORD)) {
                     appId = result.replace(SystemConstant.QUERY_JOBID_KEY_WORD, SystemConstant.SPACE).trim();
+                    log.info("[job-submitted-success] 解析得到的appId是 {}  原始数据 :{}", appId, result);
                     localLog.append("[job-submitted-success] 解析得到的appId是:").append(appId).append(SystemConstant.LINE_FEED);
-                } else if (StringUtils.isEmpty(appId) && result.contains(SystemConstant.QUERY_JOBID_KEY_WORD_BACKUP)) {
+                }
+                if (StringUtils.isEmpty(appId) && result.contains(SystemConstant.QUERY_JOBID_KEY_WORD_BACKUP)) {
                     appId = result.replace(SystemConstant.QUERY_JOBID_KEY_WORD_BACKUP, SystemConstant.SPACE).trim();
+                    log.info("[Job has been submitted with JobID] 解析得到的appId是 {}  原始数据 :{}", appId, result);
                     localLog.append("[Job has been submitted with JobID] 解析得到的appId是:").append(appId).append(SystemConstant.LINE_FEED);
                 }
 
@@ -157,14 +161,19 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
                     lastTime = System.currentTimeMillis();
                 }
             }
+            if (appId == null || appId.length() != 32) {
+                log.error("解析appID异常 appId:{}", appId);
+                throw new BizException("解析appId异常");
+            }
             log.info("获取到的appId是 {}",appId);
             return appId;
+        } catch (BizException e) {
+            throw e;
         } catch (Exception e) {
             log.error("[clearInfoLogStream] is error", e);
             throw new RuntimeException("clearInfoLogStream is error");
         } finally {
-            this.close(br, stream, "clearInfoLogStream");
-
+            this.close(reader, stream, "clearInfoLogStream");
         }
     }
 
