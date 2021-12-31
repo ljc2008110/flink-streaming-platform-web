@@ -42,14 +42,14 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
 
     @Override
     public String submitJob(String command, StringBuilder localLog, Long jobRunLogId,
-                            DeployModeEnum deployModeEnum) throws Exception {
+        DeployModeEnum deployModeEnum) throws Exception {
         log.info(" command ={} ", command);
         localLog.append("启动命令：").append(command).append(SystemConstant.LINE_FEED);
         Process pcs = Runtime.getRuntime().exec(command);
 
         //清理错误日志
         this.clearLogStream(pcs.getErrorStream(), String.format("%s#startForLocal-error#%s", DateUtil.now(),
-                deployModeEnum.name()));
+            deployModeEnum.name()));
         String appId = this.clearInfoLogStream(pcs.getInputStream(), localLog, jobRunLogId);
         int rs = pcs.waitFor();
         localLog.append("rs=").append(rs).append(SystemConstant.LINE_FEED);
@@ -85,7 +85,7 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
     public void savepointForPerYarn(String jobId, String targetDirectory, String yarnAppId) throws Exception {
 
         String command = CommandUtil.buildSavepointCommandForYarn(jobId, targetDirectory, yarnAppId,
-                systemConfigService.getSystemConfigByKey(SysConfigEnum.FLINK_HOME.getKey()));
+            systemConfigService.getSystemConfigByKey(SysConfigEnum.FLINK_HOME.getKey()));
         log.info("[savepointForPerYarn] command={}", command);
         this.execSavepoint(command);
 
@@ -94,7 +94,7 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
     @Override
     public void savepointForPerCluster(String jobId, String targetDirectory) throws Exception {
         String command = CommandUtil.buildSavepointCommandForCluster(jobId, targetDirectory,
-                systemConfigService.getSystemConfigByKey(SysConfigEnum.FLINK_HOME.getKey()));
+            systemConfigService.getSystemConfigByKey(SysConfigEnum.FLINK_HOME.getKey()));
         log.info("[savepointForPerCluster] command={}", command);
         this.execSavepoint(command);
     }
@@ -159,20 +159,20 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
     private void clearLogStream(InputStream stream, final String threadName) {
         WaitForPoolConfig.getInstance().getThreadPoolExecutor().execute(() -> {
                 BufferedReader reader = null;
-                    try {
-                        Thread.currentThread().setName(threadName);
+                try {
+                    Thread.currentThread().setName(threadName);
                     String result = null;
                     reader = new BufferedReader(new InputStreamReader(stream, SystemConstants.CODE_UTF_8));
                     //按行读取
                     while ((result = reader.readLine()) != null) {
-                            log.info(result);
-                        }
-                    } catch (Exception e) {
-                        log.error("threadName={}", threadName);
-                    } finally {
-                    this.close(reader, stream, "clearLogStream");
+                        log.info(result);
                     }
+                } catch (Exception e) {
+                    log.error("threadName={}", threadName);
+                } finally {
+                    this.close(reader, stream, "clearLogStream");
                 }
+            }
         );
     }
 
@@ -197,14 +197,15 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
                 if (StringUtils.isEmpty(appId) && result.contains(SystemConstant.QUERY_JOBID_KEY_WORD)) {
                     appId = result.replace(SystemConstant.QUERY_JOBID_KEY_WORD, SystemConstant.SPACE).trim();
                     log.info("[job-submitted-success] 解析得到的appId是 {}  原始数据 :{}", appId, result);
-                    localLog.append("[job-submitted-success] 解析得到的appId是:").append(appId).append(SystemConstant.LINE_FEED);
+                    localLog.append("[job-submitted-success] 解析得到的appId是:")
+                        .append(appId).append(SystemConstant.LINE_FEED);
                 }
                 if (StringUtils.isEmpty(appId) && result.contains(SystemConstant.QUERY_JOBID_KEY_WORD_BACKUP)) {
                     appId = result.replace(SystemConstant.QUERY_JOBID_KEY_WORD_BACKUP, SystemConstant.SPACE).trim();
                     log.info("[Job has been submitted with JobID] 解析得到的appId是 {}  原始数据 :{}", appId, result);
-                    localLog.append("[Job has been submitted with JobID] 解析得到的appId是:").append(appId).append(SystemConstant.LINE_FEED);
+                    localLog.append("[Job has been submitted with JobID] 解析得到的appId是:")
+                        .append(appId).append(SystemConstant.LINE_FEED);
                 }
-
                 localLog.append(result).append(SystemConstant.LINE_FEED);
                 //每隔2s更新日志
                 if (System.currentTimeMillis() >= lastTime + INTERVAL_TIME_TWO) {
@@ -216,7 +217,7 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
                 log.error("解析appID异常 appId:{}", appId);
                 throw new BizException("解析appId异常");
             }
-            log.info("获取到的appId是 {}",appId);
+            log.info("获取到的appId是 {}", appId);
             return appId;
         } catch (BizException e) {
             throw e;
@@ -227,6 +228,7 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
             this.close(reader, stream, "clearInfoLogStream");
         }
     }
+
 
     /**
      * 关闭流
