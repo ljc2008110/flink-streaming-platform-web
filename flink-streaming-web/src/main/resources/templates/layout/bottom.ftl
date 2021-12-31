@@ -1,14 +1,13 @@
-<div class="footer">
-    <div class="footer-inner">
-        <div class="footer-content">
-						<span style="font-size:13px">
-                             <a href="https://github.com/zhp8341/flink-streaming-platform-web" target="_blank">源码地址 </a>
-                             <span class="bolder">Flink 版本 1.12.0</span>
-                             <a href="http://www.ccblog.cn/" target="_blank"> 作者: 朱慧培  </a>
-                            <span class="bolder">联系方式 微信: zhp8341 </span>
-						</span>
-        </div>
+<footer class="navbar-grey align-center">
+    <div class="text-center align-center" style="border-top: 1px solid #E5E5E5;">
+        <a href="https://github.com/ljc2008110/flink-streaming-platform-web" target="_blank">源码链接（点击访问）</a>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <span class="bolder">Flink：版本 1.13.2</span>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="https://blog.csdn.net/ljc2008110?spm=1001.2101.3001.5343" target="_blank"> 作者: 朱慧培 & 林锦春  </a>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <span class="bolder">联系方式-QQ: 32406097 </span>
     </div>
-</div>
+</footer>
 
 

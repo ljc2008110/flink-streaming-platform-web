@@ -65,6 +65,21 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
         return appId;
     }
 
+    @Override
+    public String cancelJob(String command) throws Exception {
+        log.info(" command ={} ", command);
+        Process pcs = Runtime.getRuntime().exec(command);
+        String savepointPath = getSavepointPathFromLogs(pcs.getInputStream());
+
+        int rs = pcs.waitFor();
+        if (rs != 0) {
+            throw new RuntimeException("执行异常 is error  rs=" + rs);
+        }
+        if (StringUtils.isEmpty(savepointPath)) {
+            throw new RuntimeException("savepointPath无法获取");
+        }
+        return savepointPath;
+    }
 
     @Override
     public void savepointForPerYarn(String jobId, String targetDirectory, String yarnAppId) throws Exception {
@@ -96,6 +111,42 @@ public class CommandRpcClinetAdapterImpl implements CommandRpcClinetAdapter {
         if (rs != 0) {
             throw new Exception("[savepointForPerYarn]执行savepoint失败 is error  rs=" + rs);
         }
+    }
+
+    /**
+     * 启动日志输出并且从日志中获取成功后的jobId
+     *
+     * @author zhuhuipei
+     * @date 2021/3/28
+     * @time 11:15
+     */
+    private String getSavepointPathFromLogs(InputStream stream) {
+
+        String savepointPath = null;
+        BufferedReader reader = null;
+        try {
+            long lastTime = System.currentTimeMillis();
+            String result = null;
+            reader = new BufferedReader(new InputStreamReader(stream, SystemConstants.CODE_UTF_8));
+            //按行读取
+            while ((result = reader.readLine()) != null) {
+                log.info("read={}", result);
+                if (StringUtils.isEmpty(savepointPath) && result.contains(SystemConstant.QUERY_SAVEPOINTPATH_KEY_WORD)) {
+                    savepointPath = result.substring(result.indexOf(SystemConstant.QUERY_SAVEPOINTPATH_KEY_WORD)
+                            + SystemConstant.QUERY_SAVEPOINTPATH_KEY_WORD.length(), result.length() - 2).trim();
+                    log.info("[job-cancel-success] 解析得到的savepointPath是 {}  原始数据 :{}", savepointPath, result);
+                    return savepointPath;
+                }
+            }
+        } catch (BizException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("[getSavepointPathFromLogs] is error", e);
+            throw new RuntimeException("getSavepointPathFromLogs is error");
+        } finally {
+            this.close(reader, stream, "getSavepointPathFromLogs");
+        }
+        return null;
     }
 
     /**

@@ -26,7 +26,7 @@
         }
     </script>
 
-    <#include "../../layout/menu.ftl">
+<#--    <#include "../../layout/menu.ftl">-->
 
 
     <div class="main-content">

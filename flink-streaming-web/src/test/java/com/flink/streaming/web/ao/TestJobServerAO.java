@@ -3,6 +3,7 @@ package com.flink.streaming.web.ao;
 import com.flink.streaming.web.base.TestRun;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * @author zhuhuipei
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class TestJobServerAO extends TestRun {
 
+    @Qualifier("jobStandaloneServerAO")
     @Autowired
     private JobServerAO jobServerAO;
 

@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author zhuhuipei
@@ -75,7 +76,6 @@ public class JobStandaloneServerAOImpl implements JobServerAO {
 
     }
 
-
     @Override
     public void stop(Long id, String userName) {
         JobConfigDTO jobConfigDTO = jobConfigService.getJobConfigById(id);
@@ -88,9 +88,39 @@ public class JobStandaloneServerAOImpl implements JobServerAO {
             log.warn("getJobInfoForStandaloneByAppId is error jobStandaloneInfo={}", jobStandaloneInfo);
         } else {
             //停止任务
-            if (SystemConstants.STATUS_RUNNING.equals(jobStandaloneInfo.getState())) {
+            if (JobConfigStatus.getJobConfigStatus(JobConfigDTO.convertStatus(jobStandaloneInfo.getState()).getCode()).canCancel()) {
                 flinkRestRpcAdapter.cancelJobForFlinkByAppId(jobConfigDTO.getJobId(), jobConfigDTO.getDeployModeEnum());
             }
+        }
+        JobConfigDTO jobConfig = new JobConfigDTO();
+        jobConfig.setStatus(JobConfigStatus.STOP);
+        jobConfig.setEditor(userName);
+        jobConfig.setId(id);
+        jobConfig.setJobId("");
+        //变更状态
+        jobConfigService.updateJobConfigById(jobConfig);
+
+    }
+
+    @Override
+    public void stop(Long id, String userName, Boolean isSavePoint) {
+        JobConfigDTO jobConfigDTO = jobConfigService.getJobConfigById(id);
+        if (jobConfigDTO == null) {
+            throw new BizException(SysErrorEnum.JOB_CONFIG_JOB_IS_NOT_EXIST);
+        }
+        JobStandaloneInfo jobStandaloneInfo = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(jobConfigDTO.getJobId()
+                , jobConfigDTO.getDeployModeEnum());
+        String savepointPath = null;
+        if (jobStandaloneInfo == null || StringUtils.isNotEmpty(jobStandaloneInfo.getErrors())) {
+            log.warn("getJobInfoForStandaloneByAppId is error jobStandaloneInfo={}", jobStandaloneInfo);
+        } else {
+            // 中间态及运行中任务可停止任务
+            if (JobConfigStatus.getJobConfigStatus(JobConfigDTO.convertStatus(jobStandaloneInfo.getState()).getCode()).canCancel()) {
+                savepointPath = jobBaseServiceAO.cancelJob(jobConfigDTO.getJobId(), jobConfigDTO.getDeployModeEnum());
+            }
+        }
+        if (Objects.nonNull(savepointPath)) {
+            savepointBackupService.insertSavepoint(id, savepointPath, new Date());
         }
         JobConfigDTO jobConfig = new JobConfigDTO();
         jobConfig.setStatus(JobConfigStatus.STOP);

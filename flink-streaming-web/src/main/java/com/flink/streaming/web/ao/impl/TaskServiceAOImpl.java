@@ -21,6 +21,7 @@ import com.flink.streaming.web.service.JobConfigService;
 import com.flink.streaming.web.service.SystemConfigService;
 import com.flink.streaming.web.thread.AlarmDingdingThread;
 import com.flink.streaming.web.thread.AlarmHttpThread;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author zhuhuipei
@@ -165,8 +167,10 @@ public class TaskServiceAOImpl implements TaskServiceAO {
             //sql、jar 流任务才执行SavePoint
             if (JobTypeEnum.SQL_STREAMING.equals(jobConfigDTO.getJobTypeEnum())||
                     JobTypeEnum.JAR.equals(jobConfigDTO.getJobTypeEnum())) {
-                SavePointThreadPool.getInstance().getThreadPoolExecutor().execute(new SavePoint(jobConfigDTO));
+                SavePoint thread = new SavePoint(jobConfigDTO);
+                SavePointThreadPool.getInstance().getThreadPoolExecutor().execute(thread);
                 sleep();
+                // TODO
             }
 
 
@@ -176,9 +180,12 @@ public class TaskServiceAOImpl implements TaskServiceAO {
     /**
      * 执行SavePoint
      */
+    @Data
     class SavePoint implements Runnable {
 
         private JobConfigDTO jobConfigDTO;
+
+        private Boolean result;
 
         public SavePoint(JobConfigDTO jobConfigDTO) {
             this.jobConfigDTO = jobConfigDTO;
@@ -196,9 +203,11 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                         jobStandaloneServerAO.savepoint(jobConfigDTO.getId());
                         break;
                 }
-
+                this.result = true;
             } catch (Exception e) {
                 log.error("执行savepoint 异常", e);
+                this.result = false;
+                throw new RuntimeException(e);
             }
         }
     }
@@ -206,7 +215,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
 
     private void sleep() {
         try {
-            Thread.sleep(4000);
+            Thread.sleep(3000);
         } catch (InterruptedException e) {
         }
     }

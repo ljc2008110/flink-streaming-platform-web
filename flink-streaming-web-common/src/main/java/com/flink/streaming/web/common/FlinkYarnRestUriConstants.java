@@ -27,6 +27,8 @@ public class FlinkYarnRestUriConstants {
 
     public final static String URI_SAVEPOINTS_JOB = "jobs/%s/savepoints";
 
+    public final static String URI_SYS_SAVEPOINTS_PATH = "jobmanager/config";
+
     public static String getUriJobsForYarn(String appId) {
         return rootUriForYarn(appId) + URI_JOBS;
     }

@@ -111,6 +111,21 @@ public class JobYarnServerAOImpl implements JobServerAO {
 
     }
 
+    /**
+     * 关闭任务
+     *
+     * @param id          job-config-id
+     * @param userName    用户名
+     * @param isSavePoint 是否保存savepoint后再停
+     * @author Kevin.Lin
+     * @date 2021-12-24 17:23:06
+     * @link JobYarnServerAOImpl.stop(Long id, String userName)
+     */
+    @Override
+    public void stop(Long id, String userName, Boolean isSavePoint) {
+        throw new java.lang.UnsupportedOperationException("暂未实现，请使用");
+    }
+
     @Override
     public void savepoint(Long id) {
         JobConfigDTO jobConfigDTO = jobConfigService.getJobConfigById(id);

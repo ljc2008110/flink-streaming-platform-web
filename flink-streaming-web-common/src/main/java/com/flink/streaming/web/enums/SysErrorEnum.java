@@ -49,9 +49,9 @@ public enum SysErrorEnum {
 
     YARN_CODE("00000", "yarn队列中没有找到运行的任务"),
 
-
     ADD_SAVEPOINT_ERROR("40000", "手动添加SAVEPOINT失败"),
-
+    ALL_SAVEPOINT_ERROR("40001", "一键备份SAVEPOINT失败"),
+    ALL_RESTORE_ERROR("40002", "一键恢复SAVEPOINT失败"),
 
     ALARM_DINGDING_NULL("50000","请到报警管理-报警设置 配置钉钉告警url"),
 

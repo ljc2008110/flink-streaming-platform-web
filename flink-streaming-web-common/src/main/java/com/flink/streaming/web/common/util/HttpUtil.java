@@ -49,7 +49,6 @@ public class HttpUtil {
         return restTemplate;
     }
 
-
     public static String buildUrl(String domain, String urn){
 
         return new StringBuilder(domain).append(urn).toString();

@@ -42,4 +42,12 @@ public interface SavepointBackupService {
      */
     String getSavepointPathById(Long jobConfigId, Long id);
 
+    /**
+     * 恢复所有任务savepoint
+     *
+     * @author Kevin.Lin
+     * @date 2021-12-29 11:41:53
+     */
+    void restoreSavepoint();
+
 }

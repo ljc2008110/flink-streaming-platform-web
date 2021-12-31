@@ -19,7 +19,7 @@ function stopSP(id, isSavePoint) {
                     time: 1500,
                     class_name: 'gritter-light,gritter-fontsize',
                     after_close: function(e) {
-                        window.location.reload();
+                        refreshForm();
                     }
                 });
 
@@ -50,7 +50,7 @@ function start(id) {
                     time: 1500,
                     class_name: 'gritter-fontsize',
                     after_close: function(e) {
-                        window.location.reload();
+                        refreshForm();
                     }
                 });
             }else{
@@ -75,7 +75,7 @@ function deleteConfig(id) {
             },
             function (data, status) {
                 if (data!=null && data.success){
-                    window.location.reload();
+                    refreshForm();
                 }else{
                     $.gritter.add({
                         title: 'Fail!',
@@ -107,7 +107,7 @@ function copyConfig(id) {
                     time: 1500,
                     class_name: 'gritter-fontsize',
                     after_close: function(e) {
-                        window.location.reload();
+                        refreshForm();
                     }
                 });
                 return true;
@@ -131,7 +131,7 @@ function openConfig(id) {
                     time: 1500,
                     class_name: 'gritter-fontsize',
                     after_close: function(e) {
-                        window.location.reload();
+                        refreshForm();
                     }
                 });
 
@@ -164,7 +164,7 @@ function closeConfig(id) {
                     time: 1500,
                     class_name: 'gritter-fontsize',
                     after_close: function(e) {
-                        window.location.reload();
+                        refreshForm();
                     }
                 });
             }else{
@@ -184,33 +184,33 @@ function closeConfig(id) {
 
 function  savePoint(id){
     if(confirm('确定要手执行savePoint吗？')==true){
-    $.post("../api/savepoint", {
-            id: id
-        },
-        function (data, status) {
-            if (data!=null && data.success){
-                $.gritter.add({
-                    title: 'Success!',
-                    text: '执行成功，请稍后刷新',
-                    sticky: false,
-                    time: 1500,
-                    class_name: 'gritter-light,gritter-fontsize',
-                    after_close: function(e) {
-                        window.location.reload();
-                    }
-                });
-            }else{
-                $.gritter.add({
-                    title: 'Fail!',
-                    text: '执行失败：' + data.message,
-                    sticky: false,
-                    time: 3000,
-                    after_close: function(e) {
-                    }
-                });
+        $.post("../api/savepoint", {
+                id: id
+            },
+            function (data, status) {
+                if (data!=null && data.success){
+                    $.gritter.add({
+                        title: 'Success!',
+                        text: '执行成功，请稍后刷新',
+                        sticky: false,
+                        time: 1500,
+                        class_name: 'gritter-light,gritter-fontsize',
+                        after_close: function(e) {
+                            refreshForm();
+                        }
+                    });
+                }else{
+                    $.gritter.add({
+                        title: 'Fail!',
+                        text: '执行失败：' + data.message,
+                        sticky: false,
+                        time: 3000,
+                        after_close: function(e) {
+                        }
+                    });
+                }
             }
-        }
-    );
+        );
     }else{
         return false;
 
@@ -228,6 +228,77 @@ function refreshForm() {
 
 }
 
+// @author Kevin.Lin
+// @date 2021-12-29 11:30:39
+function onekeyBackup() {
+    if(confirm('确定要备份所有任务吗？') == true){
+        $.post("../api/onekeyBackup", null,
+            function (data, status) {
+                if (data!=null && data.success){
+                    $.gritter.add({
+                        title: 'Success!',
+                        text: '备份所有任务执行成功。',
+                        sticky: false,
+                        time: 1500,
+                        class_name: 'gritter-light,gritter-fontsize',
+                        after_close: function(e) {
+                            refreshForm();
+                        }
+                    });
+                }else{
+                    $.gritter.add({
+                        title: 'Fail!',
+                        text: '备份所有任务执行失败：' + data.message,
+                        sticky: false,
+                        time: 3000,
+                        after_close: function(e) {
+                        }
+                    });
+                }
+            }
+        );
+    }else{
+        return false;
+    }
+}
 
+// @author Kevin.Lin
+// @date 2021-12-29 11:15:08
+function onekeyRestore() {
+    alert("一键恢复功能暂未开放！");
+    return;
+    if(confirm('确定要恢复所有任务吗？') == true){
+        $.post("../api/onekeyRestore", {
+                id: id
+            },
+            function (data, status) {
+                if (data!=null && data.success){
+                    $.gritter.add({
+                        title: 'Success!',
+                        text: '执行成功，请稍后刷新',
+                        sticky: false,
+                        time: 1500,
+                        class_name: 'gritter-light,gritter-fontsize',
+                        after_close: function(e) {
+                            window.location.reload();
+                        }
+                    });
+                }else{
+                    $.gritter.add({
+                        title: 'Fail!',
+                        text: '执行失败：' + data.message,
+                        sticky: false,
+                        time: 3000,
+                        after_close: function(e) {
+                        }
+                    });
+                }
+            }
+        );
+    }else{
+        return false;
+
+    }
+}
 
 

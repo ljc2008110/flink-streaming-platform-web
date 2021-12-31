@@ -1,6 +1,7 @@
 package com.flink.streaming.web.rpc.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.flink.streaming.web.common.FlinkYarnRestUriConstants;
 import com.flink.streaming.web.common.util.HttpUtil;
 import com.flink.streaming.web.enums.DeployModeEnum;
@@ -17,6 +18,8 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author zhuhuipei
@@ -98,7 +101,6 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
         return jobStatusList;
     }
 
-
     @Override
     public void cancelJobForFlinkByAppId(String jobId, DeployModeEnum deployModeEnum) {
         if (StringUtils.isEmpty(jobId)) {
@@ -126,15 +128,51 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
             if (StringUtils.isEmpty(res)) {
                 return null;
             }
-            return JSON.parseObject(res).getJSONObject("latest").
+            String savepointPath = JSON.parseObject(res).getJSONObject("latest").
                     getJSONObject("savepoint").getString("external_path");
-
+            if (savepointPath.startsWith("file:") && !savepointPath.startsWith("file://")) {
+                savepointPath = savepointPath.replace("file:/", "file:///");
+            }
+            return savepointPath;
         } catch (Exception e) {
             log.error("savepointPath is error", e);
         }
         return null;
 
 
+    }
+
+    /**
+     * 获取系统配置的savepoint路径
+     *
+     * @param deployModeEnum
+     * @return
+     */
+    @Override
+    public String getSysSavepointPath(DeployModeEnum deployModeEnum) {
+        try {
+            Thread.sleep(HttpUtil.TIME_OUT_3_S);
+            String url = HttpUtil.buildUrl(systemConfigService.getFlinkHttpAddress(deployModeEnum),
+                    FlinkYarnRestUriConstants.URI_SYS_SAVEPOINTS_PATH);
+            log.info("[savepointPath]请求参数 url={}", url);
+            String res = HttpUtil.buildRestTemplate(HttpUtil.TIME_OUT_1_M).getForObject(url, String.class);
+            if (StringUtils.isEmpty(res)) {
+                return null;
+            }
+            AtomicReference<String> savepointPath = new AtomicReference<String>();
+            JSON.parseArray(res).stream().forEach(json -> {
+                if (((JSONObject)json).getString("key").equals("state.savepoints.dir")) {
+                    savepointPath.set(((JSONObject) json).getString("value"));
+                    return;
+                };
+            });
+            if (Objects.nonNull(savepointPath)) {
+                return savepointPath.get();
+            }
+        } catch (Exception e) {
+            log.error("getSysSavepointPath is error", e);
+        }
+        return null;
     }
 
 

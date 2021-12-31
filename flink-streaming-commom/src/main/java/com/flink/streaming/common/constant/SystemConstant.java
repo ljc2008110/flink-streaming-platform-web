@@ -30,6 +30,6 @@ public class SystemConstant {
 
     public static final String QUERY_JOBID_KEY_WORD_BACKUP = "Job has been submitted with JobID";
 
-
+    public static final String QUERY_SAVEPOINTPATH_KEY_WORD = "Savepoint stored in ";
 
 }

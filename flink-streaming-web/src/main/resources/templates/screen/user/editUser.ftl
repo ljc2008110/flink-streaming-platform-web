@@ -26,7 +26,7 @@
         }
     </script>
 
-    <#include "../../layout/menu.ftl">
+<#--    <#include "../../layout/menu.ftl">-->
 
 
     <div class="main-content">
@@ -42,8 +42,6 @@
             </div>
 
             <div class="page-content">
-
-
                 <div class="row">
                     <div class="col-xs-12">
                         <div class="form-group " name="errorMessage" id="errorMessage"></div>
@@ -59,9 +57,7 @@
 								   </span>
                                 </div>
                             </div>
-
                             <div class="space-4"></div>
-
                             <div class="form-group">
                                 <label class="col-sm-3 control-label no-padding-right" for="form-field-2">
                                     *输入旧密码</label>

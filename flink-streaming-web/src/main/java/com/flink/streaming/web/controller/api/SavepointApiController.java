@@ -1,5 +1,6 @@
 package com.flink.streaming.web.controller.api;
 
+import com.flink.streaming.web.ao.TaskServiceAO;
 import com.flink.streaming.web.common.RestResult;
 import com.flink.streaming.web.exceptions.BizException;
 import com.flink.streaming.web.enums.SysErrorEnum;
@@ -25,6 +26,8 @@ public class SavepointApiController {
     @Autowired
     private SavepointBackupService savepointBackupService;
 
+    @Autowired
+    private TaskServiceAO taskServiceAO;
 
     @RequestMapping(value = "/addSavepoint")
     public RestResult<String> addSavepoint(Long jobConfigId, String savepointPath) {
@@ -40,4 +43,31 @@ public class SavepointApiController {
         return RestResult.success();
     }
 
+    @RequestMapping(value = "/onekeyBackup")
+    public RestResult<String> allSavepoint() {
+        try {
+            taskServiceAO.autoSavePoint();
+        } catch (BizException e) {
+            log.error("allSavepoint is error.", e);
+            return RestResult.error(e.getCode(), e.getErrorMsg());
+        } catch (Exception e) {
+            log.error("allSavepoint is error.", e);
+            return RestResult.error(SysErrorEnum.ALL_SAVEPOINT_ERROR);
+        }
+        return RestResult.success();
+    }
+
+    @RequestMapping(value = "/onekeyRestore")
+    public RestResult<String> allRestoreFromSavepoint() {
+        try {
+            savepointBackupService.restoreSavepoint();
+        } catch (BizException e) {
+            log.error("restoreSavepoint is error.", e);
+            return RestResult.error(e.getCode(), e.getErrorMsg());
+        } catch (Exception e) {
+            log.error("restoreSavepoint is error.", e);
+            return RestResult.error(SysErrorEnum.ALL_RESTORE_ERROR);
+        }
+        return RestResult.success();
+    }
 }

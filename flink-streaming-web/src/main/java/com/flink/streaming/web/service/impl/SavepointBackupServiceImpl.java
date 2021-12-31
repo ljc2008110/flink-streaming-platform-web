@@ -44,4 +44,15 @@ public class SavepointBackupServiceImpl implements SavepointBackupService {
         }
         return null;
     }
+
+    /**
+     * 恢复所有任务savepoint
+     *
+     * @author Kevin.Lin
+     * @date 2021-12-29 11:41:53
+     */
+    @Override
+    public void restoreSavepoint() {
+
+    }
 }

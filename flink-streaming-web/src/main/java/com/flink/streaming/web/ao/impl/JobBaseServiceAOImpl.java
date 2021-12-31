@@ -22,6 +22,7 @@ import com.flink.streaming.web.rpc.YarnRestRpcAdapter;
 import com.flink.streaming.web.rpc.model.JobStandaloneInfo;
 import com.flink.streaming.web.service.JobConfigService;
 import com.flink.streaming.web.service.JobRunLogService;
+import com.flink.streaming.web.service.SavepointBackupService;
 import com.flink.streaming.web.service.SystemConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Component;
 import java.net.URL;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -56,7 +58,6 @@ public class JobBaseServiceAOImpl implements JobBaseServiceAO {
 
     @Autowired
     private CommandRpcClinetAdapter commandRpcClinetAdapter;
-
 
     @Autowired
     private JobConfigService jobConfigService;
@@ -360,6 +361,59 @@ public class JobBaseServiceAOImpl implements JobBaseServiceAO {
         });
     }
 
+    /**
+     * 退出任务
+     *
+     * @param jobId
+     * @param deployMode
+     * @author Kevin.Lin
+     * @date 2021-12-24 17:04:35
+     */
+    @Override
+    public String cancelJob(String jobId, DeployModeEnum deployMode) {
+        boolean success = true;
+        try {
+            //jobmanager path for current job (deploy mode)
+            String jmPath = systemConfigService.getFlinkHttpAddress(deployMode);
+
+            if(StringUtils.isEmpty(jmPath)) {
+                throw new BizException("未配置该运行模式指定的flink jobmanager的rest地址。");
+            } else {
+                URL url = new URL(jmPath);
+                jmPath = new StringBuilder(url.getHost()).append(":").append(url.getPort()).toString();
+            }
+            String flinkBinPath = SystemConstants.buildFlinkBin(systemConfigService.getSystemConfigByKey(SysConfigEnum.FLINK_HOME.getKey()));
+            String savepointPath = flinkRestRpcAdapter.getSysSavepointPath(deployMode);
+            String command = null;
+            String jobSavepointPath = null;
+
+            switch (deployMode) {
+                case LOCAL:
+                case STANDALONE:
+                    //1、构建执行命令
+                    command = CommandUtil.buildCancelCommandForCluster(jobId, jmPath, flinkBinPath, savepointPath);
+                    //2、提交任务
+                    jobSavepointPath = this.cancelJobForStandalone(command);
+                    break;
+                default:
+                    throw new UnsupportedOperationException("暂不支持");
+            }
+
+            if (Objects.nonNull(jobSavepointPath)) {
+                jobSavepointPath = flinkRestRpcAdapter.savepointPath(jobId, deployMode);
+            }
+            return jobSavepointPath;
+        } catch (Exception e) {
+            log.error("exe is error", e);
+            success = false;
+        } finally {
+        }
+        return null;
+    }
+
+    private String cancelJobForStandalone(String command) throws Exception {
+        return commandRpcClinetAdapter.cancelJob(command);
+    }
 
     private void checYarnQueue(JobConfigDTO jobConfigDTO) {
         try {

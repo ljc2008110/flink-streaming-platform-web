@@ -13,7 +13,6 @@ import java.util.List;
  */
 public interface FlinkRestRpcAdapter {
 
-
     /**
      * Standalone 模式下获取状态
      *
@@ -38,7 +37,6 @@ public interface FlinkRestRpcAdapter {
      */
     void cancelJobForFlinkByAppId(String jobId, DeployModeEnum deployModeEnum);
 
-
     /**
      * 获取savepoint路径
      *
@@ -48,5 +46,10 @@ public interface FlinkRestRpcAdapter {
      */
     String savepointPath(String jobId, DeployModeEnum deployModeEnum);
 
-
+    /**
+     * 获取系统配置的savepoint路径
+     * @param deployModeEnum
+     * @return
+     */
+    String getSysSavepointPath(DeployModeEnum deployModeEnum);
 }

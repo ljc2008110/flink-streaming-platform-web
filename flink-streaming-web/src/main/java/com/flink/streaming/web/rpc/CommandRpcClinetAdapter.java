@@ -42,5 +42,13 @@ public interface CommandRpcClinetAdapter {
      */
     void savepointForPerCluster(String jobId, String targetDirectory) throws Exception;
 
-
+    /**
+     * 退出job，并返回savepointPath
+     * @param command
+     * @return 返回savepointPath
+     * @throws Exception
+     * @author Kevin.Lin
+     * @date 2021-12-27 18:45:49
+     */
+    String cancelJob(String command) throws Exception;
 }

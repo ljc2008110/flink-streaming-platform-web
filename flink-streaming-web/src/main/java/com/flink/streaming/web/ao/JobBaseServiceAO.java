@@ -1,5 +1,6 @@
 package com.flink.streaming.web.ao;
 
+import com.flink.streaming.web.enums.DeployModeEnum;
 import com.flink.streaming.web.model.dto.JobConfigDTO;
 import com.flink.streaming.web.model.dto.JobRunParamDTO;
 
@@ -66,5 +67,13 @@ public interface JobBaseServiceAO {
     void aSyncExecJob(final JobRunParamDTO jobRunParamDTO, final JobConfigDTO jobConfig,
                       final Long jobRunLogId, final String savepointPath);
 
-
+    /**
+     * 退出任务
+     * @param jobId
+     * @param deployMode
+     * @return
+     * @author Kevin.Lin
+     * @date 2021-12-24 17:04:35
+     */
+    String cancelJob(final String jobId, final DeployModeEnum deployMode);
 }

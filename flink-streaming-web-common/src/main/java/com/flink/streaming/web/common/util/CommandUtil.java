@@ -115,6 +115,27 @@ public class CommandUtil {
         return command.toString();
     }
 
+    /**
+     * 退出任务，本地/Standalone Cluster模式
+     *
+     * @author Kevin.Lin
+     * @date 2021-12-23 18:51:52
+     */
+    public static String buildCancelCommandForCluster(String jobId, String jmPath,
+                                                      String flinkBinPath, String savepointPath) throws Exception {
+        StringBuilder command = new StringBuilder();
+        command.append(flinkBinPath).append(" cancel ");
+        command.append(" -m ").append(jmPath).append(" ");
+
+        if (StringUtils.isNotEmpty(savepointPath)) {
+            command.append(" -s ").append(savepointPath).append(" ");
+        }
+
+        command.append(jobId);
+
+        log.info("buildRunCommandForCluster cancelCommand={}", command.toString());
+        return command.toString();
+    }
 
     public static String buildSavepointCommandForYarn(String jobId, String targetDirectory, String yarnAppId,
                                                       String flinkHome) {

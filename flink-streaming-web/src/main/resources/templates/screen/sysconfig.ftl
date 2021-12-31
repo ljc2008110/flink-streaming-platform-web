@@ -23,7 +23,7 @@
         try{ace.settings.loadState('main-container')}catch(e){}
     </script>
 
-    <#include "../layout/menu.ftl">
+<#--    <#include "../layout/menu.ftl">-->
 
 
     <div class="main-content">
