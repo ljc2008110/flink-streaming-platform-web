@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author zhuhuipei
@@ -163,6 +164,9 @@ public class TaskServiceAOImpl implements TaskServiceAO {
             log.warn("autoSavePoint is null  没有找到运行中的任务 ");
             return;
         }
+        Integer cnt = jobConfigDTOList.size();
+        AtomicInteger finishedCnt = new AtomicInteger(0);
+        AtomicInteger failedCnt = new AtomicInteger(0);
         for (JobConfigDTO jobConfigDTO : jobConfigDTOList) {
 
             //sql、jar 流任务才执行SavePoint
@@ -170,21 +174,31 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                     JobTypeEnum.JAR.equals(jobConfigDTO.getJobTypeEnum())) {
                 SavePoint thread = new SavePoint(jobConfigDTO);
                 SavePointThreadPool.getInstance().getThreadPoolExecutor().execute(thread);
-                waitForResult(thread);
+                if (!waitForResult(thread)) {
+                    failedCnt.getAndAdd(1);
+                }
+                finishedCnt.getAndAdd(1);
+                log.info("process（all / finished / failed）: {} / {} / {}", cnt, finishedCnt.get(), failedCnt.get());
             }
-
-
         }
     }
 
-    private void waitForResult(SavePoint thread) {
-        while (Objects.isNull(thread.result)) {
+    private Boolean waitForResult(SavePoint thread) {
+        long st =System.currentTimeMillis();
+        while (Objects.isNull(thread.getResult())) {
+
+            log.info("savepoint result: {}", thread.getResult());
+//            if (System.currentTimeMillis() - st >= 5000) {
+//                log.warn("waitForResult for savepoint time out.");
+//                break;
+//            }
             try {
-                Thread.sleep(500);
+                Thread.sleep(200);
             } catch (Exception e) {
                 // do nothing.
             }
         }
+        return thread.result;
     }
 
     /**
@@ -214,10 +228,10 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                         break;
                 }
                 this.result = true;
+                log.info("jobid:{}, savepoint 执行成功.", jobConfigDTO.getJobId());
             } catch (Exception e) {
                 log.error("执行savepoint 异常", e);
                 this.result = false;
-                throw new RuntimeException(e);
             }
         }
     }
