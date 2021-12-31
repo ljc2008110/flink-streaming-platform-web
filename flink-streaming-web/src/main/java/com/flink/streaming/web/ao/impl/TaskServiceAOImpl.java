@@ -29,6 +29,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -169,11 +170,20 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                     JobTypeEnum.JAR.equals(jobConfigDTO.getJobTypeEnum())) {
                 SavePoint thread = new SavePoint(jobConfigDTO);
                 SavePointThreadPool.getInstance().getThreadPoolExecutor().execute(thread);
-                sleep();
-                // TODO
+                waitForResult(thread);
             }
 
 
+        }
+    }
+
+    private void waitForResult(SavePoint thread) {
+        while (Objects.isNull(thread.result)) {
+            try {
+                Thread.sleep(500);
+            } catch (Exception e) {
+                // do nothing.
+            }
         }
     }
 
@@ -215,7 +225,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
 
     private void sleep() {
         try {
-            Thread.sleep(3000);
+            Thread.sleep(500);
         } catch (InterruptedException e) {
         }
     }

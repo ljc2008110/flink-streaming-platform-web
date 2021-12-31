@@ -31,7 +31,7 @@
 
 <body class="no-skin">
     <!-- start top-->
-    <div id="navbar" class="navbar navbar-default  ace-save-state">
+    <div id="navbar" class="navbar navbar-default ">
         <#include "../../layout/top.ftl">
     </div>
     <!-- end top-->
@@ -123,7 +123,7 @@
                             <#list jobConfigList as jobConfigVO>
                                 <tr>
                                     <td>${jobConfigVO.id!""}</td>
-                                    <td>
+                                    <td style="text-align: right">
                                         ${jobConfigVO.jobName!""}
                                         <#if jobConfigVO.isOpen==1>
                                             <a href="#" class="btn-success btn btn-xs right-arrow-button"
