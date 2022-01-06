@@ -150,7 +150,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                 .forEach(jobConfigDTO -> {
                     JobStandaloneInfo jobStandaloneInfo = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(
                             jobConfigDTO.getJobId(), DeployModeEnum.STANDALONE);
-                    String flinkStatus = Objects.isNull(jobStandaloneInfo) ? "CANCELED" : jobStandaloneInfo.getState();
+                    String flinkStatus = Objects.isNull(jobStandaloneInfo) ? "UNKNOWN" : jobStandaloneInfo.getState();
                     if (!jobConfigDTO.equalFlinkJobStatus(flinkStatus)) {
                         jobConfigDTO.setFlinkJobStatus(flinkStatus);
                         if (JobConfigStatus.RUN.equals(jobConfigDTO.getStatus())) {
@@ -160,7 +160,8 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                             this.unexceptedJobList.add(jobConfigDTO);
                         }
                     }
-                    if (JobConfigStatus.FAIL.equals(jobConfigDTO.getStatus())) {
+                    if (JobConfigStatus.FAIL.equals(jobConfigDTO.getStatus())
+                            || JobConfigStatus.UNKNOWN.equals(jobConfigDTO.getStatus())) {
                         try {
                             this.autoRestoreJobStandalone(CallbackDTO.to(jobConfigDTO), SystemConstants.USER_NAME_TASK_AUTO);
                             jobStandaloneInfo = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(
