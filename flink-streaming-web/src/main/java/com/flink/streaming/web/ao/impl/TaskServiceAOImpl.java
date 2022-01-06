@@ -143,6 +143,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
     }
 
     private void checkStandaloneJobStatus(List<JobConfigDTO> jobConfigDTOList) {
+        log.info("开始执行任务状态检查。");
         List<String> toRestoreJobList = new ArrayList<>();
         List<String> toUnexceptedJobList = new ArrayList<>();
         List<String> restoreFail = new ArrayList<>();
@@ -173,6 +174,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                             this.unexceptedJobList.remove(jobConfigDTO);
                             jobConfigDTO.setFlinkJobStatus(jobStandaloneInfo.getState());
                             toRestoreJobList.add(jobConfigDTO.getJobName());
+                            log.info("任务已恢复：{}", jobConfigDTO.getJobName());
                         } catch (Exception e) {
                             log.warn("restore job jobid: {}, jobname: {}, fail. {}", jobConfigDTO.getJobId(), jobConfigDTO.getJobName(), e);
                             restoreFail.add(jobConfigDTO.getJobName());
