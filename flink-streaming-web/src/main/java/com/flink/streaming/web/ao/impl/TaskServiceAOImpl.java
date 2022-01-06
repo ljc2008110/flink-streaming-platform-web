@@ -159,6 +159,10 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                             toUnexceptedJobList.add(jobConfigDTO.getJobName() + ": " + flinkStatus);
                             this.unexceptedJobList.add(jobConfigDTO);
                         }
+                        //变更任务状态
+                        log.info("发现本地任务状态和Cluster上不一致，准备自动更新任务状态 jobStandaloneInfo={}", jobStandaloneInfo);
+                        JobConfigDTO jobConfig = JobConfigDTO.buildConfig(jobConfigDTO.getId(), flinkStatus);
+                        jobConfigService.updateJobConfigById(jobConfig);
                     }
                     if (JobConfigStatus.FAIL.equals(jobConfigDTO.getStatus())
                             || JobConfigStatus.UNKNOWN.equals(jobConfigDTO.getStatus())) {
