@@ -63,7 +63,6 @@ public class JobConfigDTO implements Serializable {
      */
     private JobConfigStatus status;
 
-
     /**
      * 三方jar udf、 连接器 等jar如http://xxx.xxx.com/flink-streaming-udf.jar
      */
@@ -126,6 +125,17 @@ public class JobConfigDTO implements Serializable {
 
     private String editor;
 
+    /**
+     * 自动恢复从savepoint；
+     * <ul>
+     *     <li>自动备份savepoint</li>
+     *     <li>自动从savepoint中恢复</li>
+     * </ul>
+     * @author Kevin.Lin
+     * @date 2022-1-2 23:58:20
+     */
+    private Integer autoRestore;
+
     public String getCheckPointPath() {
         Pattern pattern = Pattern.compile("-checkpointDir\\s(\\S*)");
         Matcher matcher = pattern.matcher(flinkCheckpointConfig);
@@ -167,6 +177,7 @@ public class JobConfigDTO implements Serializable {
         jobConfig.setCustomArgs(jobConfigDTO.getCustomArgs());
         jobConfig.setCustomMainClass(jobConfigDTO.getCustomMainClass());
         jobConfig.setCustomJarUrl(jobConfigDTO.getCustomJarUrl());
+        jobConfig.setAutoRestore(jobConfigDTO.getAutoRestore());
 
         return jobConfig;
     }
@@ -199,6 +210,7 @@ public class JobConfigDTO implements Serializable {
         jobConfigDTO.setCustomArgs(jobConfig.getCustomArgs());
         jobConfigDTO.setCustomMainClass(jobConfig.getCustomMainClass());
         jobConfigDTO.setCustomJarUrl(jobConfig.getCustomJarUrl());
+        jobConfigDTO.setAutoRestore(jobConfig.getAutoRestore());
 
         return jobConfigDTO;
     }
@@ -233,41 +245,43 @@ public class JobConfigDTO implements Serializable {
         return jobConfig;
     }
 
-    public static JobConfigDTO buildConfig(Long id, JobConfigStatus status) {
+    public static JobConfigDTO buildConfig(Long id, String flinkJobStatus) {
         JobConfigDTO jobConfig = new JobConfigDTO();
-        jobConfig.setStatus(status);
+        jobConfig.setStatus(convertStatus(flinkJobStatus));
         jobConfig.setEditor("sys_auto");
         jobConfig.setId(id);
         return jobConfig;
     }
 
     private static final List<String> FLINK_JOB_STATUS = Arrays.asList(
-            new String[]{
-                    FlinkJobStatus.RUNNING.getStatus(),
-                    FlinkJobStatus.CREATED.getStatus(),
-                    FlinkJobStatus.SUSPENDED.getStatus(),
-                    FlinkJobStatus.RESTARTING.getStatus(),
-                    FlinkJobStatus.FAILED.getStatus(),
-                    FlinkJobStatus.FAILING.getStatus(),
-                    FlinkJobStatus.CANCELED.getStatus(),
-                    FlinkJobStatus.CANCELLING.getStatus(),
-                    FlinkJobStatus.FINISHED.getStatus()
-            });
+            FlinkJobStatus.RUNNING.getStatus(),
+            FlinkJobStatus.CREATED.getStatus(),
+            FlinkJobStatus.SUSPENDED.getStatus(),
+            FlinkJobStatus.RESTARTING.getStatus(),
+            FlinkJobStatus.FAILED.getStatus(),
+            FlinkJobStatus.FAILING.getStatus(),
+            FlinkJobStatus.CANCELED.getStatus(),
+            FlinkJobStatus.CANCELLING.getStatus(),
+            FlinkJobStatus.FINISHED.getStatus());
     private static final List<JobConfigStatus> SYS_JOB_STATUS = Arrays.asList(
-            new JobConfigStatus[]{
-                    JobConfigStatus.RUN,
-                    JobConfigStatus.STARTING,
-                    JobConfigStatus.SUSPENDED,
-                    JobConfigStatus.RESTARTING,
-                    JobConfigStatus.FAIL,
-                    JobConfigStatus.RUN,
-                    JobConfigStatus.CANCELED,
-                    JobConfigStatus.CANCELING,
-                    JobConfigStatus.FINISHED
-            });
+            JobConfigStatus.RUN,
+            JobConfigStatus.STARTING,
+            JobConfigStatus.SUSPENDED,
+            JobConfigStatus.RESTARTING,
+            JobConfigStatus.FAIL,
+            JobConfigStatus.RUN,
+            JobConfigStatus.CANCELED,
+            JobConfigStatus.CANCELING,
+            JobConfigStatus.FINISHED);
 
     public static JobConfigStatus convertStatus(String flinkJobStatus) {
         int index = FLINK_JOB_STATUS.indexOf(flinkJobStatus);
         return index == -1 ? JobConfigStatus.UNKNOWN : SYS_JOB_STATUS.get(index);
+    }
+    public void setFlinkJobStatus(String flinkJobStatus) {
+        this.status = convertStatus(flinkJobStatus);
+    }
+    public Boolean equalFlinkJobStatus(String flinkJobStatus) {
+        return !Objects.isNull(flinkJobStatus) && convertStatus(flinkJobStatus).equals(this.getStatus());
     }
 }

@@ -187,6 +187,57 @@ public class JobConfigServiceImpl implements JobConfigService {
         return JobConfigDTO.toListDTO(jobConfigMapper.findJobConfigByStatus(statusList));
     }
 
+    /**
+     * 按状态获取任务且配置开启的
+     *
+     * @param status
+     * @author Kevin.Lin
+     * @date 2022-1-3 00:22:30
+     */
+    @Override
+    public List<JobConfigDTO> findJobConfigByStatusAndOpen(Integer... status) {
+        if (status == null) {
+            return Collections.emptyList();
+        }
+        List<Integer> statusList = new ArrayList<>();
+        for (Integer s : status) {
+            statusList.add(s);
+        }
+        return JobConfigDTO.toListDTO(jobConfigMapper.findJobConfigByStatusAndOpen(statusList));
+    }
+
+    /**
+     * 获取状态检查的job
+     *
+     * @author Kevin.Lin
+     * @date 2022-1-3 00:22:30
+     */
+    @Override
+    public List<JobConfigDTO> findCheckStatusJobs() {
+        return findJobConfigByStatusAndOpen(JobConfigStatus.RUN.getCode(),
+                JobConfigStatus.FAIL.getCode(),
+                JobConfigStatus.FAILING.getCode(),
+                JobConfigStatus.CANCELED.getCode(),
+                JobConfigStatus.CANCELING.getCode(),
+                JobConfigStatus.STARTING.getCode(),
+                JobConfigStatus.RESTARTING.getCode(),
+                JobConfigStatus.SUSPENDED.getCode(),
+                JobConfigStatus.UNKNOWN.getCode());
+    }
+
+    /**
+     * 查询jobid对应任务
+     *
+     * @param jobId
+     * @return jobId对应对象
+     * @author Kevin.Lin
+     * @date 2022-1-5 18:45:16
+     */
+    @Override
+    public JobConfigDTO findByJobId(String jobId) {
+        return JobConfigDTO.toDTO(jobConfigMapper.selectByJobId(jobId));
+    }
+
 
     /**
      * 检查任务名称是不是重复

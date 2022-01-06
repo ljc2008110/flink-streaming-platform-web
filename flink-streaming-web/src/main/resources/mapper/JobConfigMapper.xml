@@ -25,6 +25,7 @@
         <result column="edit_time" jdbcType="TIMESTAMP" property="editTime"/>
         <result column="creator" jdbcType="VARCHAR" property="creator"/>
         <result column="editor" jdbcType="VARCHAR" property="editor"/>
+        <result column="auto_restore" jdbcType="BIT" property="autoRestore"/>
     </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs"
                type="com.flink.streaming.web.model.entity.JobConfig">
@@ -52,7 +53,8 @@
         create_time,
         edit_time,
         creator,
-        editor
+        editor,
+        auto_restore
     </sql>
     <sql id="Blob_Column_List">
         flink_sql
@@ -64,9 +66,9 @@
         </selectKey>
         insert into job_config (job_name, deploy_mode, flink_run_config,
         flink_checkpoint_config, job_id, is_open,
-        status, last_start_time, version, job_type,custom_args,custom_main_class,custom_jar_url,
+        status, last_start_time, version, job_type,custom_args, custom_main_class, custom_jar_url,
         is_deleted, create_time, edit_time,
-        creator, editor, flink_sql,ext_jar_path
+        creator, editor, flink_sql, ext_jar_path, auto_restore
         )
         values (#{jobName,jdbcType=VARCHAR}, #{deployMode,jdbcType=VARCHAR},
         #{flinkRunConfig,jdbcType=VARCHAR},
@@ -75,7 +77,7 @@
         #{customArgs,jdbcType=VARCHAR},#{customMainClass,jdbcType=VARCHAR},#{customJarUrl,jdbcType=VARCHAR},
         0, now(), now(),
         #{creator,jdbcType=VARCHAR}, #{editor,jdbcType=VARCHAR}, #{flinkSql,jdbcType=LONGVARCHAR},
-        #{extJarPath,jdbcType=VARCHAR}
+        #{extJarPath,jdbcType=VARCHAR}, #{autoRestore, jdbcType=BIT}
         )
     </insert>
 
@@ -88,6 +90,14 @@
         where id = #{id,jdbcType=BIGINT} and is_deleted=0
     </select>
 
+    <select id="selectByJobId" parameterType="java.lang.String" resultMap="ResultMapWithBLOBs">
+        select
+        <include refid="Base_Column_List"/>
+        ,
+        <include refid="Blob_Column_List"/>
+        from job_config
+        where job_id = #{jobId,jdbcType=VARCHAR} and is_deleted=0
+    </select>
 
     <select id="findJobConfig" parameterType="com.flink.streaming.web.model.param.JobConfigParam"
             resultMap="ResultMapWithBLOBs">
@@ -155,6 +165,15 @@
 
     </select>
 
+    <select id="findJobConfigByStatusAndOpen"  resultMap="ResultMapWithBLOBs">
+        select
+        <include refid="Base_Column_List"/>
+        from job_config
+        where is_deleted=0 and is_open=1 and status in
+        <foreach collection="statusList" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
 
     <select id="selectCountByJobName" resultType="java.lang.Long">
         select
@@ -239,6 +258,9 @@
 
             <if test="lastRunLogId != null">
                 last_run_log_id = #{lastRunLogId,jdbcType=BIT},
+            </if>
+            <if test="autoRestore != null">
+                auto_restore = #{autoRestore,jdbcType=BIT},
             </if>
         </set>
         where id = #{id,jdbcType=BIGINT} and is_deleted=0

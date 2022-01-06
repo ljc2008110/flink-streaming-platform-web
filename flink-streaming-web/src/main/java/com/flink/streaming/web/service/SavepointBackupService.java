@@ -43,6 +43,13 @@ public interface SavepointBackupService {
     String getSavepointPathById(Long jobConfigId, Long id);
 
     /**
+     * 获取最新的savepoint记录的id
+     * @author Kevin.Lin
+     * @date 2022-1-3 01:24:38
+     */
+    Long getLatestSavepointId(Long jobConfigId);
+
+    /**
      * 恢复所有任务savepoint
      *
      * @author Kevin.Lin

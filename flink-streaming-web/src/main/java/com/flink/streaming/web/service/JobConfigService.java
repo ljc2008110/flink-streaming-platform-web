@@ -104,5 +104,28 @@ public interface JobConfigService {
      */
     List<JobConfigDTO> findJobConfigByStatus(Integer... status);
 
+    /**
+     * 按状态获取任务且配置开启的
+     *
+     * @author Kevin.Lin
+     * @date 2022-1-3 00:22:30
+     */
+    List<JobConfigDTO> findJobConfigByStatusAndOpen(Integer... status);
 
+    /**
+     * 获取状态检查的job
+     *
+     * @author Kevin.Lin
+     * @date 2022-1-3 00:22:30
+     */
+    List<JobConfigDTO> findCheckStatusJobs();
+
+    /**
+     * 查询jobid对应任务
+     * @param jobId
+     * @return jobId对应对象
+     * @author Kevin.Lin
+     * @date 2022-1-5 18:45:16
+     */
+    JobConfigDTO findByJobId(String jobId);
 }

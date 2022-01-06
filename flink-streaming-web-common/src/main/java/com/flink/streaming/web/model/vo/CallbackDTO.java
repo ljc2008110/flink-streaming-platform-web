@@ -20,6 +20,7 @@ public class CallbackDTO {
 
     private Long jobConfigId;
 
+    private Integer autoRestore;
 
     public static CallbackDTO to(JobConfigDTO jobConfigDTO) {
         CallbackDTO callbackDTO = new CallbackDTO();
@@ -27,6 +28,7 @@ public class CallbackDTO {
         callbackDTO.setJobName(jobConfigDTO.getJobName());
         callbackDTO.setDeployMode(jobConfigDTO.getDeployModeEnum().name());
         callbackDTO.setAppId(jobConfigDTO.getJobId());
+        callbackDTO.setAutoRestore(jobConfigDTO.getAutoRestore());
         return callbackDTO;
     }
 }

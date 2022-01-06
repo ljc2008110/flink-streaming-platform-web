@@ -1,5 +1,6 @@
 package com.flink.streaming.web.mapper;
 
+import com.flink.streaming.web.model.dto.JobConfigDTO;
 import com.flink.streaming.web.model.entity.JobConfig;
 import com.flink.streaming.web.model.param.JobConfigParam;
 import com.github.pagehelper.Page;
@@ -36,4 +37,7 @@ public interface JobConfigMapper {
     List<JobConfig> findJobConfigByStatus(@Param("statusList") List<Integer> statusList);
 
 
+    List<JobConfig> findJobConfigByStatusAndOpen(@Param("statusList") List<Integer> statusList);
+
+    JobConfig selectByJobId(String jobId);
 }

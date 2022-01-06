@@ -1,9 +1,11 @@
 package com.flink.streaming.web.ao.impl;
 
 import com.flink.streaming.common.enums.JobTypeEnum;
+import com.flink.streaming.web.alarm.DingDingAlarm;
 import com.flink.streaming.web.ao.AlarmServiceAO;
 import com.flink.streaming.web.ao.JobServerAO;
 import com.flink.streaming.web.ao.TaskServiceAO;
+import com.flink.streaming.web.common.FlinkJobStatus;
 import com.flink.streaming.web.common.SystemConstants;
 import com.flink.streaming.web.common.util.YarnUtil;
 import com.flink.streaming.web.config.AlarmPoolConfig;
@@ -18,21 +20,23 @@ import com.flink.streaming.web.rpc.model.JobInfo;
 import com.flink.streaming.web.rpc.model.JobStandaloneInfo;
 import com.flink.streaming.web.service.JobAlarmConfigService;
 import com.flink.streaming.web.service.JobConfigService;
+import com.flink.streaming.web.service.SavepointBackupService;
 import com.flink.streaming.web.service.SystemConfigService;
 import com.flink.streaming.web.thread.AlarmDingdingThread;
 import com.flink.streaming.web.thread.AlarmHttpThread;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @author zhuhuipei
@@ -68,25 +72,20 @@ public class TaskServiceAOImpl implements TaskServiceAO {
     @Autowired
     private JobAlarmConfigService jobAlarmConfigService;
 
+    @Autowired
+    private SavepointBackupService savepointBackupService;
 
     private ThreadPoolExecutor threadPoolExecutor = AlarmPoolConfig.getInstance().getThreadPoolExecutor();
 
     @Override
     public void checkJobStatus() {
-        List<JobConfigDTO> jobConfigDTOList = jobConfigService.findJobConfigByStatus(
-                JobConfigStatus.RUN.getCode(),
-                JobConfigStatus.FAIL.getCode(),
-                JobConfigStatus.FAILING.getCode(),
-                JobConfigStatus.CANCELED.getCode(),
-                JobConfigStatus.CANCELING.getCode(),
-                JobConfigStatus.STARTING.getCode(),
-                JobConfigStatus.RESTARTING.getCode(),
-                JobConfigStatus.SUSPENDED.getCode(),
-                JobConfigStatus.UNKNOWN.getCode());
+        // 配置开启且为以下状态的需要检测job的状态
+        List<JobConfigDTO> jobConfigDTOList = jobConfigService.findCheckStatusJobs();
         if (CollectionUtils.isEmpty(jobConfigDTOList)) {
-            log.warn("当前配置中没有运行的任务");
+            log.warn("配置已开启中没有正在运行的任务");
             return;
         }
+
         for (JobConfigDTO jobConfigDTO : jobConfigDTOList) {
             if (JobTypeEnum.SQL_BATCH.equals(jobConfigDTO.getJobTypeEnum())){
                 log.warn("批任务不需要状态校验");
@@ -107,6 +106,111 @@ public class TaskServiceAOImpl implements TaskServiceAO {
             this.sleep();
         }
 
+    }
+
+    private List<JobConfigDTO> unexceptedJobList = new ArrayList<>();
+    /**
+     * 检查非正常任务并恢复通知
+     *
+     * @author Kevin.Lin
+     * @date 2022-1-6 11:43:29
+     */
+    @Override
+    public void checkUnexceptedJob() {
+        if (this.unexceptedJobList.isEmpty()) {
+            return;
+        }
+        List<JobConfigDTO> jobConfigDTOList = new ArrayList<>();
+        Collections.copy(jobConfigDTOList, unexceptedJobList);
+        checkStandaloneJobStatus(jobConfigDTOList);
+    }
+
+    /**
+     * 检查job任务状态
+     *
+     * @author Kevin.Lin
+     * @date 2022-1-6 11:49:38
+     */
+    @Override
+    public void checkStandaloneJobStatus() {
+        // 配置开启且为以下状态的需要检测job的状态
+        List<JobConfigDTO> jobConfigDTOList = jobConfigService.findCheckStatusJobs();
+        if (CollectionUtils.isEmpty(jobConfigDTOList)) {
+            log.warn("配置已开启中没有正在运行的任务");
+            return;
+        }
+        checkStandaloneJobStatus(jobConfigDTOList);
+    }
+
+    private void checkStandaloneJobStatus(List<JobConfigDTO> jobConfigDTOList) {
+        List<String> toRestoreJobList = new ArrayList<>();
+        List<String> toUnexceptedJobList = new ArrayList<>();
+        List<String> restoreFail = new ArrayList<>();
+        jobConfigDTOList.stream().filter(jobConfigDTO -> !JobTypeEnum.SQL_BATCH.equals(jobConfigDTO.getJobTypeEnum()))
+                .forEach(jobConfigDTO -> {
+                    JobStandaloneInfo jobStandaloneInfo = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(
+                            jobConfigDTO.getJobId(), DeployModeEnum.STANDALONE);
+                    String flinkStatus = Objects.isNull(jobStandaloneInfo) ? "CANCELED" : jobStandaloneInfo.getState();
+                    if (!jobConfigDTO.equalFlinkJobStatus(flinkStatus)) {
+                        jobConfigDTO.setFlinkJobStatus(flinkStatus);
+                        if (JobConfigStatus.RUN.equals(jobConfigDTO.getStatus())) {
+                            toRestoreJobList.add(jobConfigDTO.getJobName());
+                        } else {
+                            toUnexceptedJobList.add(jobConfigDTO.getJobName() + ": " + flinkStatus);
+                            this.unexceptedJobList.add(jobConfigDTO);
+                        }
+                    }
+                    if (JobConfigStatus.FAIL.equals(jobConfigDTO.getStatus())) {
+                        try {
+                            this.autoRestoreJobStandalone(CallbackDTO.to(jobConfigDTO), SystemConstants.USER_NAME_TASK_AUTO);
+                            jobStandaloneInfo = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(
+                                    jobConfigDTO.getJobId(), DeployModeEnum.STANDALONE);
+                            this.unexceptedJobList.remove(jobConfigDTO);
+                            jobConfigDTO.setFlinkJobStatus(jobStandaloneInfo.getState());
+                            toRestoreJobList.add(jobConfigDTO.getJobName());
+                        } catch (Exception e) {
+                            log.warn("restore job jobid: {}, jobname: {}, fail. {}", jobConfigDTO.getJobId(), jobConfigDTO.getJobName(), e);
+                            restoreFail.add(jobConfigDTO.getJobName());
+                        }
+                    }
+                });
+        StringBuilder alarmMsg = new StringBuilder("Flink任务状态检测通知，");
+        boolean hasMsg = false;
+        if (!toRestoreJobList.isEmpty()) {
+            alarmMsg.append("已恢复任务：").append(toRestoreJobList.stream().collect(Collectors.joining(", ")).toString());
+            hasMsg = true;
+        }
+        if (!toUnexceptedJobList.isEmpty()) {
+            alarmMsg.append("状态异常任务：").append(toUnexceptedJobList.stream().collect(Collectors.joining(", ")).toString());
+            hasMsg = true;
+        }
+        if (!restoreFail.isEmpty()) {
+            alarmMsg.append("恢复失败任务：").append(restoreFail.stream().collect(Collectors.joining(", ")).toString());
+            hasMsg = true;
+        }
+        if (hasMsg) {
+            this.justDingdingAlarm(alarmMsg.toString());
+        }
+    }
+
+    @Autowired
+    private DingDingAlarm dingDingAlarm;
+    /**
+     * 钉钉告警
+     * @author Kevin.Lin
+     * @date 2022-1-6 16:21:17
+     */
+    private void justDingdingAlarm(final String content) {
+        final String alartUrl = systemConfigService.getSystemConfigByKey(SysConfigEnum.DINGDING_ALARM_URL.getKey());
+        if (StringUtils.isEmpty(alartUrl)) {
+            log.warn("#####钉钉告警url没有设置，无法告警#####");
+            return;
+        }
+        try {
+            dingDingAlarm.send(alartUrl, content);
+        } catch(Exception e) {
+            log.error("dingDingAlarm.send is error", e);
+        }
     }
 
     @Override
@@ -159,19 +263,21 @@ public class TaskServiceAOImpl implements TaskServiceAO {
 
     @Override
     public void autoSavePoint() {
-        List<JobConfigDTO> jobConfigDTOList = jobConfigService.findJobConfigByStatus(JobConfigStatus.RUN.getCode());
+        List<JobConfigDTO> jobConfigDTOList = jobConfigService.findJobConfigByStatusAndOpen(JobConfigStatus.RUN.getCode());
+        // 过滤job已经启用autoRestore
+        jobConfigDTOList = jobConfigDTOList.stream().filter(job -> job.getAutoRestore() == 1).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(jobConfigDTOList)) {
-            log.warn("autoSavePoint is null  没有找到运行中的任务 ");
+            log.warn("autoSavePoint is empty. 没有找到已开启auto_restore且运行中的任务。");
             return;
         }
-        Integer cnt = jobConfigDTOList.size();
+        Integer cnt = jobConfigDTOList.size();  
         AtomicInteger finishedCnt = new AtomicInteger(0);
         AtomicInteger failedCnt = new AtomicInteger(0);
         for (JobConfigDTO jobConfigDTO : jobConfigDTOList) {
 
             //sql、jar 流任务才执行SavePoint
-            if (JobTypeEnum.SQL_STREAMING.equals(jobConfigDTO.getJobTypeEnum())||
-                    JobTypeEnum.JAR.equals(jobConfigDTO.getJobTypeEnum())) {
+            if (JobTypeEnum.SQL_STREAMING.equals(jobConfigDTO.getJobTypeEnum())
+                    || JobTypeEnum.JAR.equals(jobConfigDTO.getJobTypeEnum())) {
                 SavePoint thread = new SavePoint(jobConfigDTO);
                 SavePointThreadPool.getInstance().getThreadPoolExecutor().execute(thread);
                 if (!waitForResult(thread)) {
@@ -184,16 +290,9 @@ public class TaskServiceAOImpl implements TaskServiceAO {
     }
 
     private Boolean waitForResult(SavePoint thread) {
-        long st =System.currentTimeMillis();
         while (Objects.isNull(thread.getResult())) {
-
-            log.info("savepoint result: {}", thread.getResult());
-//            if (System.currentTimeMillis() - st >= 5000) {
-//                log.warn("waitForResult for savepoint time out.");
-//                break;
-//            }
             try {
-                Thread.sleep(200);
+                Thread.sleep(500);
             } catch (Exception e) {
                 // do nothing.
             }
@@ -230,8 +329,12 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                 this.result = true;
                 log.info("jobid:{}, savepoint 执行成功.", jobConfigDTO.getJobId());
             } catch (Exception e) {
-                log.error("执行savepoint 异常", e);
+                log.error("任务：{}，执行savepoint 异常 {}", jobConfigDTO.getJobId(), e);
                 this.result = false;
+            } finally {
+                if (Objects.isNull(result)) {
+                    this.result = false;
+                }
             }
         }
     }
@@ -279,8 +382,8 @@ public class TaskServiceAOImpl implements TaskServiceAO {
             return;
         }
         //查询任务状态
-        JobStandaloneInfo jobStandaloneInfo = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(jobConfigDTO.getJobId(),
-                jobConfigDTO.getDeployModeEnum());
+        JobStandaloneInfo jobStandaloneInfo = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(
+                jobConfigDTO.getJobId(), jobConfigDTO.getDeployModeEnum());
 
         /*
          * 如果flink不存在该任务，则直接置为STOP状态及后续操作。
@@ -288,7 +391,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
          *   1.a) 如果状态相同，直接返回；
          *   1.b) 如果状态不同，则进行修改；
          * 2. flink返回job状态为STOP状态：
-         *   2.a) 更新状态为STOP，并做报警及任务重新拉起操作。
+         *   2.a) 更新状态为STOP，并做报警及任务重新拉起操作（需要根据auto_restore状态进行恢复）。
          */
         String flinkJobStatus = null;
         if (jobStandaloneInfo == null) {
@@ -297,17 +400,20 @@ public class TaskServiceAOImpl implements TaskServiceAO {
             flinkJobStatus = jobStandaloneInfo.getState();
         }
 
-        JobConfigStatus status = jobConfigDTO.getStatus();
-        JobConfigStatus flinkStatus = JobConfigDTO.convertStatus(flinkJobStatus);
-
-        if (!status.equals(flinkStatus)) {
+        if (!jobConfigDTO.equalFlinkJobStatus(flinkJobStatus)) {
             //变更任务状态
             log.info("发现本地任务状态和Cluster上不一致，准备自动更新任务状态 jobStandaloneInfo={}", jobStandaloneInfo);
-            JobConfigDTO jobConfig = JobConfigDTO.buildConfig(jobConfigDTO.getId(), flinkStatus);
+            JobConfigDTO jobConfig = JobConfigDTO.buildConfig(jobConfigDTO.getId(), flinkJobStatus);
             jobConfigService.updateJobConfigById(jobConfig);
+            // 任务恢复为RUNNING状态，钉钉任务恢复
+            if (JobConfigStatus.RUN.equals(jobConfig.getStatus())) {
+                String content = new StringBuilder(" 检测到任务状态已恢复：").append(flinkJobStatus).append("，任务名称：")
+                        .append(jobConfigDTO.getJobName()).toString();
+                this.dingdingAlarm(content, jobConfigDTO.getId());
+            }
         }
 
-        if (flinkStatus.willAlarm()) {
+        if (jobConfigDTO.getStatus().willAlarm()) {
             String content = new StringBuilder(" 检测到任务状态异常：").append(flinkJobStatus).append("，任务名称：")
                     .append(jobConfigDTO.getJobName()).toString();
             //发送告警并且自动拉起任务
@@ -331,7 +437,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
 
 
         if (CollectionUtils.isEmpty(alarmTypeEnumList)) {
-            log.warn("没有配置告警，无法进行告警,并且任务将会被停止！！！");
+            log.warn("没有配置告警，无法进行告警，并且任务将会被停止！！！");
             return;
         }
 
@@ -351,8 +457,9 @@ public class TaskServiceAOImpl implements TaskServiceAO {
             }
         }
         //自动拉起
-        if (alarmTypeEnumList.contains(AlarmTypeEnum.AUTO_START_JOB) && jobConfigDTO.getStatus().willRestart()) {
-            log.info("校验任务不存在，开始自动拉起 JobConfigId={}", callbackDTO.getJobConfigId());
+        if (alarmTypeEnumList.contains(AlarmTypeEnum.AUTO_START_JOB)
+                && jobConfigDTO.getStatus().willRestart()) {
+            log.info("校验任务不存在或者已经失败/退出，将自动拉起 JobConfigId={}", callbackDTO.getJobConfigId());
             try {
                 switch (deployModeEnum) {
                     case YARN_PER:
@@ -360,8 +467,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                                 SystemConstants.USER_NAME_TASK_AUTO);
                         break;
                     case STANDALONE:
-                        jobStandaloneServerAO.start(callbackDTO.getJobConfigId(), null,
-                                SystemConstants.USER_NAME_TASK_AUTO);
+                        autoRestoreJobStandalone(callbackDTO, SystemConstants.USER_NAME_TASK_AUTO);
                         break;
                 }
 
@@ -371,6 +477,30 @@ public class TaskServiceAOImpl implements TaskServiceAO {
 
         }
 
+    }
+
+    private boolean autoRestoreJobStandalone(CallbackDTO callbackDTO, String userNameTaskAuto) {
+        // 校验任务不存在或者已经失败/退出，将自动拉起；否则等待任务进入终态后再进行恢复
+        JobStandaloneInfo jobInfo = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(callbackDTO.getAppId(), DeployModeEnum.STANDALONE);
+        if (Objects.isNull(jobInfo) || FlinkJobStatus.FAILED.getStatus().equals(jobInfo.getState())
+                || FlinkJobStatus.CANCELED.getStatus().equals(jobInfo.getState())) {
+            // 不自动恢复，直接重新启动
+            if (Integer.valueOf(0).equals(callbackDTO.getAutoRestore())) {
+                jobStandaloneServerAO.start(callbackDTO.getJobConfigId(), null,
+                        SystemConstants.USER_NAME_TASK_AUTO);
+            } else { // 自动恢复，需找到备份并恢复
+
+                jobStandaloneServerAO.start(callbackDTO.getJobConfigId(), savepointBackupService.getLatestSavepointId(callbackDTO.getJobConfigId()),
+                        SystemConstants.USER_NAME_TASK_AUTO);
+                log.info("任务jobid：{}，名称为：{} 已恢复成功。", callbackDTO.getAppId(), callbackDTO.getJobName());
+            }
+            return true;
+        } else {
+            log.warn("任务jobid：{}，名称为：{}， 状态为：{} 非终态，不进行自动拉起。",
+                    callbackDTO.getAppId(), callbackDTO.getJobName(),
+                    Objects.isNull(jobInfo) ? "未知" : jobInfo.getState());
+            return false;
+        }
     }
 
     /**

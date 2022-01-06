@@ -46,6 +46,18 @@ public class SavepointBackupServiceImpl implements SavepointBackupService {
     }
 
     /**
+     * 获取最新的savepoint记录的id
+     *
+     * @param jobConfigId
+     * @author Kevin.Lin
+     * @date 2022-1-3 01:24:38
+     */
+    @Override
+    public Long getLatestSavepointId(Long jobConfigId) {
+        return savepointBackupMapper.getLatestSavepointId(jobConfigId);
+    }
+
+    /**
      * 恢复所有任务savepoint
      *
      * @author Kevin.Lin

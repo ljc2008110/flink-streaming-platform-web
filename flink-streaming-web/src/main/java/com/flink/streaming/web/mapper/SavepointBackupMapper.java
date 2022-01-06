@@ -13,8 +13,7 @@ public interface SavepointBackupMapper {
 
     List<SavepointBackup> selectByLimt10(@Param("jobConfigId") Long jobConfigId);
 
-
     SavepointBackup getSavepointBackupById(@Param("jobConfigId") Long jobConfigId, @Param("id") Long id);
 
-
+    Long getLatestSavepointId(@Param("jobConfigId") Long jobConfigId);
 }

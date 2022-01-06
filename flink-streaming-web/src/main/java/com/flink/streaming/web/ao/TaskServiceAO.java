@@ -40,5 +40,17 @@ public interface TaskServiceAO {
      */
     void autoSavePoint();
 
+    /**
+     * 检查非正常任务并恢复通知
+     * @author Kevin.Lin
+     * @date 2022-1-6 11:43:29
+     */
+    void checkUnexceptedJob();
 
+    /**
+     * 检查job任务状态
+     * @author Kevin.Lin
+     * @date 2022-1-6 11:49:38
+     */
+    void checkStandaloneJobStatus();
 }

@@ -46,6 +46,14 @@
 
     </select>
 
+    <select id="getLatestSavepointId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        select
+         id
+        from savepoint_backup
+        where job_config_id = #{jobConfigId,jdbcType=BIGINT} and is_deleted=0
+        order by create_time desc
+        limit 1;
 
+    </select>
 
 </mapper>

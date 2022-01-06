@@ -160,7 +160,7 @@
                                             <ul class="dropdown-menu">
                                                 <li>
                                                     <#if jobConfigVO.isOpen==1>
-                                                        <#if jobConfigVO.stauts==1>
+                                                        <#if jobConfigVO.stauts!=97 || jobConfigVO.status >= 0>
                                                             <a href="#" onclick="stop(${jobConfigVO.id})">停止任务</a>
                                                         <#else>
                                                             <a href="#" onclick="start(${jobConfigVO.id})">提交任务</a>

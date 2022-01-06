@@ -112,5 +112,14 @@ public class JobConfig {
      */
     private String flinkSql;
 
+    /**
+     * 自动恢复从savepoint；
+     * <ul>
+     *     <li>自动备份savepoint</li>
+     *     <li>自动从savepoint中恢复</li>
+     * </ul>
+     */
+    private Integer autoRestore;
+
 
 }

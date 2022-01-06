@@ -15,6 +15,7 @@ import com.flink.streaming.web.controller.web.BaseController;
 import com.flink.streaming.web.model.dto.JobConfigDTO;
 import com.flink.streaming.web.model.param.UpsertJobConfigParam;
 import com.flink.streaming.web.service.JobConfigService;
+import com.flink.streaming.web.service.JobStatusService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,17 +35,16 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class JobConfigApiController extends BaseController {
 
-
     @Autowired
     private JobServerAO jobYarnServerAO;
-
     @Autowired
     private JobServerAO jobStandaloneServerAO;
-
     @Autowired
     private JobConfigService jobConfigService;
     @Autowired
     private JobConfigAO jobConfigAO;
+    @Autowired
+    private JobStatusService jobStatusService;
 
     @RequestMapping("/start")
     public RestResult<String> start(Long id, Long savepointId) {
@@ -178,6 +178,17 @@ public class JobConfigApiController extends BaseController {
             return RestResult.error(e.getMessage());
         }
         return RestResult.success();
+    }
+
+    @RequestMapping(value = "/syncJobStatusFromFlink", method = {RequestMethod.GET})
+    public RestResult syncJobStatusFromFlink() {
+        try {
+            jobStatusService.syncJobStatus();
+            return RestResult.success();
+        } catch (Exception e) {
+            log.error("syncJobStatusFromFlink is error", e);
+            return RestResult.error(e.getMessage());
+        }
     }
 
     @RequestMapping(value = "/copyConfig", method = {RequestMethod.POST})

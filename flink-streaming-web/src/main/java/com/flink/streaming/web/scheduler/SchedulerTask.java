@@ -67,9 +67,26 @@ public class SchedulerTask {
         }
         log.info("#####[task]一致性校验检查#######");
         try {
-            taskServiceAO.checkJobStatus();
+            taskServiceAO.checkStandaloneJobStatus();
         } catch (Exception e) {
-            log.error("checkJobStatusByYarn is error", e);
+            log.error("checkJobStatus is error", e);
+        }
+    }
+
+    /**
+     * 检查任务及任务恢复通知，每2分钟检查一次
+     */
+    @Async("taskExecutor")
+    @Scheduled(cron = "0 */2 * * * ?")
+    public void checkUnexceptedJob() {
+        if (!ipStatusService.isLeader()) {
+            return;
+        }
+        log.info("#####[Unexcepted-task]状态恢复检查#######");
+        try {
+            taskServiceAO.checkUnexceptedJob();
+        } catch (Exception e) {
+            log.error("checkUnexceptedJob is error", e);
         }
     }
 
