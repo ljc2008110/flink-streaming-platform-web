@@ -20,6 +20,9 @@ public class JobStandaloneInfo implements Serializable {
     @JSONField(name = "state")
     private String state;
 
+    @JSONField(name = "name")
+    private String name;
+
     private String errors;
 
 

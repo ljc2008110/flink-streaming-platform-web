@@ -284,4 +284,5 @@ public class JobConfigDTO implements Serializable {
     public Boolean equalFlinkJobStatus(String flinkJobStatus) {
         return !Objects.isNull(flinkJobStatus) && convertStatus(flinkJobStatus).equals(this.getStatus());
     }
+
 }

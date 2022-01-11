@@ -103,26 +103,9 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                 default:
                     break;
             }
-            this.sleep();
+            this.sleep(500L);
         }
 
-    }
-
-    private List<JobConfigDTO> unexceptedJobList = new ArrayList<>();
-    /**
-     * 检查非正常任务并恢复通知
-     *
-     * @author Kevin.Lin
-     * @date 2022-1-6 11:43:29
-     */
-    @Override
-    public void checkUnexceptedJob() {
-        if (this.unexceptedJobList.isEmpty()) {
-            return;
-        }
-        List<JobConfigDTO> jobConfigDTOList = new ArrayList<>();
-        Collections.copy(jobConfigDTOList, unexceptedJobList);
-        checkStandaloneJobStatus(jobConfigDTOList);
     }
 
     /**
@@ -139,6 +122,41 @@ public class TaskServiceAOImpl implements TaskServiceAO {
             log.warn("配置已开启中没有正在运行的任务");
             return;
         }
+        // 查出flink集群所有任务的执行概况
+        List<JobStandaloneInfo> jobStandaloneInfos = flinkRestRpcAdapter.getJobStatusListForStandlone(DeployModeEnum.STANDALONE);
+        // 检查重复job，有重复的告警
+        Map<String, Long> jobCntMap = jobStandaloneInfos.stream()
+                .filter(job -> !FlinkJobStatus.CANCELED.getStatus().equalsIgnoreCase(job.getState()))
+                .collect(Collectors.groupingBy(JobStandaloneInfo::getName, Collectors.counting()));
+        String dupJobs = jobCntMap.entrySet().stream().filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey).collect(Collectors.joining("\n- ", "- ", "\n"));
+        if (!dupJobs.endsWith("- \n")) {
+            this.justDingdingAlarm("## Flink任务状态检测通知\n ### 以下任务重复执行：\n" + dupJobs);
+        }
+        // 清楚已有异常列表
+        this.unexceptedJobMap.clear();
+        // 检测状态不一致任务，加入到异常状态任务检测队列
+        Map<String, String> jobStandaloneMap = jobStandaloneInfos.stream().collect(
+                Collectors.toMap(JobStandaloneInfo::getJid, JobStandaloneInfo::getState));
+        jobConfigDTOList.stream().filter(jobConfigDTO -> !jobConfigDTO.equalFlinkJobStatus(jobStandaloneMap.get(jobConfigDTO.getJobId())))
+                .forEach(jobConfigDTO -> {
+                    this.unexceptedJobMap.put(jobConfigDTO.getJobName(), jobConfigDTO);
+                });
+    }
+
+    private HashMap<String, JobConfigDTO> unexceptedJobMap = new HashMap<>();
+    /**
+     * 检查非正常任务并恢复通知
+     *
+     * @author Kevin.Lin
+     * @date 2022-1-6 11:43:29
+     */
+    @Override
+    public void checkUnexceptedJob() {
+        if (this.unexceptedJobMap.isEmpty()) {
+            return;
+        }
+        List<JobConfigDTO> jobConfigDTOList = new ArrayList<>(unexceptedJobMap.values());
         checkStandaloneJobStatus(jobConfigDTOList);
     }
 
@@ -149,55 +167,62 @@ public class TaskServiceAOImpl implements TaskServiceAO {
         List<String> restoreFail = new ArrayList<>();
         jobConfigDTOList.stream().filter(jobConfigDTO -> !JobTypeEnum.SQL_BATCH.equals(jobConfigDTO.getJobTypeEnum()))
                 .forEach(jobConfigDTO -> {
+                    // 获取flink任务实时状态
                     JobStandaloneInfo jobStandaloneInfo = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(
                             jobConfigDTO.getJobId(), DeployModeEnum.STANDALONE);
                     String flinkStatus = Objects.isNull(jobStandaloneInfo) ? "UNKNOWN" : jobStandaloneInfo.getState();
+                    // 状态不一致，更新任务状态，并添加到告警集合
                     if (!jobConfigDTO.equalFlinkJobStatus(flinkStatus)) {
                         jobConfigDTO.setFlinkJobStatus(flinkStatus);
                         if (JobConfigStatus.RUN.equals(jobConfigDTO.getStatus())) {
                             toRestoreJobList.add(jobConfigDTO.getJobName());
-                        } else {
+                        } else if (JobConfigStatus.FAIL.equals(jobConfigDTO.getStatus())
+                                || JobConfigStatus.UNKNOWN.equals(jobConfigDTO.getStatus())) {
                             toUnexceptedJobList.add(jobConfigDTO.getJobName() + ": " + flinkStatus);
-                            this.unexceptedJobList.add(jobConfigDTO);
                         }
-                        //变更任务状态
+                        // 变更任务状态
                         log.info("发现本地任务状态和Cluster上不一致，准备自动更新任务状态 jobStandaloneInfo={}", jobStandaloneInfo);
-                        JobConfigDTO jobConfig = JobConfigDTO.buildConfig(jobConfigDTO.getId(), flinkStatus);
-                        jobConfigService.updateJobConfigById(jobConfig);
+                        updateJobConfigStatus(jobConfigDTO.getId(), flinkStatus);
                     }
+                    // 针对失败和未启动任务进行恢复拉起，拉起后更新job状态
                     if (JobConfigStatus.FAIL.equals(jobConfigDTO.getStatus())
                             || JobConfigStatus.UNKNOWN.equals(jobConfigDTO.getStatus())) {
                         try {
                             this.autoRestoreJobStandalone(CallbackDTO.to(jobConfigDTO), SystemConstants.USER_NAME_TASK_AUTO);
+                            sleep(200L);
+                            JobConfigDTO jobConfigDTONew = jobConfigService.getJobConfigById(jobConfigDTO.getId());
                             jobStandaloneInfo = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(
-                                    jobConfigDTO.getJobId(), DeployModeEnum.STANDALONE);
-                            this.unexceptedJobList.remove(jobConfigDTO);
+                                    jobConfigDTONew.getJobId(), DeployModeEnum.STANDALONE);
                             jobConfigDTO.setFlinkJobStatus(jobStandaloneInfo.getState());
+                            updateJobConfigStatus(jobConfigDTO.getId(), flinkStatus);
                             toRestoreJobList.add(jobConfigDTO.getJobName());
-                            log.info("任务已恢复：{}", jobConfigDTO.getJobName());
+                            log.info("任务已恢复：{}，新的任务ID：{}", jobConfigDTO.getJobName(), jobConfigDTONew.getJobId());
                         } catch (Exception e) {
                             log.warn("restore job jobid: {}, jobname: {}, fail. {}", jobConfigDTO.getJobId(), jobConfigDTO.getJobName(), e);
                             restoreFail.add(jobConfigDTO.getJobName());
                         }
                     }
                 });
-        StringBuilder alarmMsg = new StringBuilder("Flink任务状态检测通知，");
-        boolean hasMsg = false;
-        if (!toRestoreJobList.isEmpty()) {
-            alarmMsg.append("已恢复任务：").append(toRestoreJobList.stream().collect(Collectors.joining(", ")).toString());
-            hasMsg = true;
+        String alarmMsg = buildMarkdown("已恢复任务：", toRestoreJobList)
+                + buildMarkdown("状态异常任务：", toUnexceptedJobList)
+                + buildMarkdown("恢复失败任务：", restoreFail);
+        if (!alarmMsg.isEmpty()) {
+            alarmMsg = "## Flink任务状态检测通知\n" + alarmMsg;
+            this.justDingdingAlarm(alarmMsg);
         }
-        if (!toUnexceptedJobList.isEmpty()) {
-            alarmMsg.append("状态异常任务：").append(toUnexceptedJobList.stream().collect(Collectors.joining(", ")).toString());
-            hasMsg = true;
+    }
+
+    private String buildMarkdown(String prefix, List<String> stringList) {
+        if (Objects.isNull(stringList) || stringList.isEmpty()) {
+            return "";
+        } else {
+            return "### " + prefix + "\n " + stringList.stream().collect(Collectors.joining("\n- ", "- ", "\n")).toString();
         }
-        if (!restoreFail.isEmpty()) {
-            alarmMsg.append("恢复失败任务：").append(restoreFail.stream().collect(Collectors.joining(", ")).toString());
-            hasMsg = true;
-        }
-        if (hasMsg) {
-            this.justDingdingAlarm(alarmMsg.toString());
-        }
+    }
+
+    private void updateJobConfigStatus(Long id, String flinkStatus) {
+        JobConfigDTO jobConfig = JobConfigDTO.buildConfig(id, flinkStatus);
+        jobConfigService.updateJobConfigById(jobConfig);
     }
 
     @Autowired
@@ -347,9 +372,9 @@ public class TaskServiceAOImpl implements TaskServiceAO {
     }
 
 
-    private void sleep() {
+    private void sleep(Long sleepTime) {
         try {
-            Thread.sleep(500);
+            Thread.sleep(sleepTime);
         } catch (InterruptedException e) {
         }
     }

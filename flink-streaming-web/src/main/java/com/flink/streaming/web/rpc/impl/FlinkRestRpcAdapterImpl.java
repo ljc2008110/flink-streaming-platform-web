@@ -58,8 +58,6 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
             jobStandaloneInfo = JSON.parseObject(res, JobStandaloneInfo.class);
             return jobStandaloneInfo;
         } catch (HttpClientErrorException e) {
-            jobStandaloneInfo = new JobStandaloneInfo();
-            jobStandaloneInfo.setErrors(e.getMessage());
             log.error("json 异常 res={}", res, e);
         } catch (Exception e) {
             log.error("json 异常 res={}", res, e);

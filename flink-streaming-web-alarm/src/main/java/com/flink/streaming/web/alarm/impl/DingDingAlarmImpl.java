@@ -56,12 +56,10 @@ public class DingDingAlarmImpl implements DingDingAlarm {
         return true;
     }
 
-
     private String buildContent(String text) {
         StringBuilder txt = new StringBuilder();
-        txt.append("{\"msgtype\": \"text\", \"text\": { \"content\": \"");
-        txt.append(DateUtil.date().toStringDefaultTimeZone() + " ");
-        txt.append(text).append("\" } }");
+        txt.append("{\"msgtype\": \"markdown\", \"markdown\": { \"title\": \"FlinkWeb通知\"\n,\"text\": \"");
+        txt.append(DateUtil.date().toStringDefaultTimeZone() + "\n").append(text).append("\" } }");
         return txt.toString();
     }
 
