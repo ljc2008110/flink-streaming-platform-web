@@ -126,7 +126,8 @@ public class TaskServiceAOImpl implements TaskServiceAO {
         List<JobStandaloneInfo> jobStandaloneInfos = flinkRestRpcAdapter.getJobStatusListForStandlone(DeployModeEnum.STANDALONE);
         // 检查重复job，有重复的告警
         Map<String, Long> jobCntMap = jobStandaloneInfos.stream()
-                .filter(job -> !FlinkJobStatus.CANCELED.getStatus().equalsIgnoreCase(job.getState()))
+                .filter(job -> !(FlinkJobStatus.CANCELED.getStatus().equalsIgnoreCase(job.getState())
+                            || FlinkJobStatus.FAILED.getStatus().equalsIgnoreCase(job.getState())))
                 .collect(Collectors.groupingBy(JobStandaloneInfo::getName, Collectors.counting()));
         String dupJobs = jobCntMap.entrySet().stream().filter(entry -> entry.getValue() > 1)
                 .map(Map.Entry::getKey).collect(Collectors.joining("\n- ", "- ", "\n"));
@@ -176,8 +177,8 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                         jobConfigDTO.setFlinkJobStatus(flinkStatus);
                         if (JobConfigStatus.RUN.equals(jobConfigDTO.getStatus())) {
                             toRestoreJobList.add(jobConfigDTO.getJobName());
-                        } else if (JobConfigStatus.FAIL.equals(jobConfigDTO.getStatus())
-                                || JobConfigStatus.UNKNOWN.equals(jobConfigDTO.getStatus())) {
+                        } else if (!JobConfigStatus.FAIL.equals(jobConfigDTO.getStatus())
+                                && !JobConfigStatus.UNKNOWN.equals(jobConfigDTO.getStatus())) {
                             toUnexceptedJobList.add(jobConfigDTO.getJobName() + ": " + flinkStatus);
                         }
                         // 变更任务状态

@@ -87,7 +87,7 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
             } else {
                 // 避免日志过长，截取关注的信息info打印
                 int startIdx = res.indexOf("\"isStoppable");
-                log.info("[getJobStatusListForStandlone]请求参数结果: res={}", res);
+                log.debug("[getJobStatusListForStandlone]请求参数结果: res={}", res);
                 res = JSON.parseObject(res).getString("jobs");
             }
             jobStatusList = JSON.parseArray(res, JobStandaloneInfo.class);
