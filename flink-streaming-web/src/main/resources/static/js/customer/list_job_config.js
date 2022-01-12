@@ -67,6 +67,33 @@ function start(id) {
     );
 }
 
+function setAutoRestore(id, autoRestore) {
+    var msg = '确定要' + (autoRestore==1 ? '开启' : '关闭') + '从savepoint恢复启动方式吗？';
+    if(confirm(msg)==true){
+        $.post("../api/autoRestore", {
+                id: id,
+                autoRestore: autoRestore
+            },
+            function (data, status) {
+                if (data!=null && data.success){
+                    refreshForm();
+                }else{
+                    $.gritter.add({
+                        title: 'Fail!',
+                        text: '执行失败：' + data.message,
+                        sticky: false,
+                        time: 3000,
+                        after_close: function(e) {
+                        }
+                    });
+                }
+            }
+        );
+
+    }else{
+        return false;
+    }
+}
 
 function deleteConfig(id) {
     if(confirm('确定要删除吗')==true){

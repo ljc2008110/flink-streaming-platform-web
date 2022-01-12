@@ -203,7 +203,15 @@
                                             </ul>
                                         </div>
                                     </td>
-                                    <td>${jobConfigVO.alarmStrs!""}</td>
+                                    <td><#--${jobConfigVO.alarmStrs!""}-->
+                                        <#if jobConfigVO.autoRestore?? && jobConfigVO.autoRestore == 1>
+                                            <a href="#" class="glyphicon glyphicon-floppy-saved" data-toggle="tooltip"
+                                               title="恢复任务时从savepoint备份恢复" onclick="setAutoRestore(${jobConfigVO.id!""}, 0)"></a>
+                                        <#else>
+                                            <a href="#" class="glyphicon glyphicon-floppy-remove" data-toggle="tooltip"
+                                               title="恢复任务时【不】从savepoint备份恢复" onclick="setAutoRestore(${jobConfigVO.id!""}, 1)"></a>
+                                        </#if>
+                                    </td>
                                 </tr>
                             </#list>
                         </#if>

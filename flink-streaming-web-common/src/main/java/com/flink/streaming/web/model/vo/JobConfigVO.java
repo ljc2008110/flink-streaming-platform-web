@@ -64,6 +64,8 @@ public class JobConfigVO {
 
     private String flinkRunUrl;
 
+    private Integer autoRestore;
+
     /**
      * 创建时间
      */
@@ -90,6 +92,7 @@ public class JobConfigVO {
         jobConfigVO.setIsOpenStr(YN.getYNByValue(jobConfigDTO.getIsOpen()).getDescribe());
         jobConfigVO.setStauts(jobConfigDTO.getStatus().getCode());
         jobConfigVO.setStautsStr(jobConfigDTO.getStatus().getDesc());
+        jobConfigVO.setAutoRestore(jobConfigDTO.getAutoRestore());
         if (jobConfigDTO.getDeployModeEnum() != null) {
             jobConfigVO.setDeployMode(jobConfigDTO.getDeployModeEnum().name());
         }
@@ -149,17 +152,19 @@ public class JobConfigVO {
         for (JobConfigVO jobConfigVO : jobConfigVOList) {
             List<AlarmTypeEnum> list = map.get(jobConfigVO.getId());
             if (CollectionUtil.isNotEmpty(list)) {
-                StringBuilder str = new StringBuilder("[");
+                StringBuilder str = new StringBuilder("[ ");
                 for (AlarmTypeEnum alarmTypeEnum : list) {
                     switch (alarmTypeEnum) {
                         case DINGDING:
-                            str.append(" 钉钉");
+                            str.append("钉钉 ");
                             break;
                         case CALLBACK_URL:
-                            str.append(" 回调");
+                            str.append("回调 ");
                             break;
                         case AUTO_START_JOB:
-                            str.append(" 自动重启");
+                            str.append("自动重启 ");
+                            break;
+                        default:
                             break;
                     }
                 }

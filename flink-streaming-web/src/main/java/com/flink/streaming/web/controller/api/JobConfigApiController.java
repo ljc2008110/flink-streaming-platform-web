@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Objects;
+
 /**
  * @author zhuhuipei
  * @Description
@@ -89,6 +91,25 @@ public class JobConfigApiController extends BaseController {
         return RestResult.success();
     }
 
+    @RequestMapping("/autoRestore")
+    public RestResult<String> autoRestore(Long id, Integer autoRestore) {
+        try {
+            JobConfigDTO jobConfigDTO = jobConfigService.getJobConfigById(id);
+            if (Objects.isNull(jobConfigDTO)) {
+                return RestResult.error(SysErrorEnum.JOB_CONFIG_JOB_IS_NOT_EXIST.getCode(),
+                        SysErrorEnum.JOB_CONFIG_JOB_IS_NOT_EXIST.getErrorMsg());
+            }
+            jobConfigDTO.setAutoRestore(autoRestore);
+            jobConfigService.updateJobConfigById(jobConfigDTO);
+        } catch (BizException e) {
+            log.warn("设置自动恢复失败 id={}", id, e);
+            return RestResult.error(e.getCode(), e.getErrorMsg());
+        } catch (Exception e) {
+            log.error("设置自动恢复失败 id={}", id, e);
+            return RestResult.error(SysErrorEnum.START_JOB_FAIL);
+        }
+        return RestResult.success();
+    }
 
     @RequestMapping("/open")
     public RestResult<String> open(Long id) {

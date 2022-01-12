@@ -163,11 +163,11 @@ public class JobConfigController {
                     systemConfigService.getSystemConfigByKey(SysConfigEnum.FLINK_REST_HA_HTTP_ADDRESS.getKey()));
             jobConfigVOList = JobConfigVO.toListVO(pageModel.getResult(), domainKey);
 
-            List<Long> jobIdList =
-                    jobConfigVOList.stream().map(jobConfigVO -> jobConfigVO.getId()).collect(Collectors.toList());
-            Map<Long, List<AlarmTypeEnum>> map = jobAlarmConfigService.findByJobIdList(jobIdList);
-
-            JobConfigVO.buildAlarm(jobConfigVOList, map);
+//            List<Long> jobIdList =
+//                    jobConfigVOList.stream().map(jobConfigVO -> jobConfigVO.getId()).collect(Collectors.toList());
+//            Map<Long, List<AlarmTypeEnum>> map = jobAlarmConfigService.findByJobIdList(jobIdList);
+//
+//            JobConfigVO.buildAlarm(jobConfigVOList, map);
 
         }
         modelMap.put("jobConfigList", jobConfigVOList);

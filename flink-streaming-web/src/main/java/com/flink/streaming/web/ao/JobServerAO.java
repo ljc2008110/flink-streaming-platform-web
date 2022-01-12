@@ -64,4 +64,5 @@ public interface JobServerAO {
      * @time 21:14
      */
     void close(Long id, String userName);
+
 }
