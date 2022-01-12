@@ -1,8 +1,8 @@
 package com.flink.streaming.web.controller.web;
 
+import com.flink.streaming.common.enums.JobTypeEnum;
 import com.flink.streaming.web.enums.AlarmTypeEnum;
 import com.flink.streaming.web.enums.DeployModeEnum;
-import com.flink.streaming.common.enums.JobTypeEnum;
 import com.flink.streaming.web.enums.SysConfigEnum;
 import com.flink.streaming.web.model.dto.JobConfigDTO;
 import com.flink.streaming.web.model.dto.PageModel;
@@ -163,11 +163,11 @@ public class JobConfigController {
                     systemConfigService.getSystemConfigByKey(SysConfigEnum.FLINK_REST_HA_HTTP_ADDRESS.getKey()));
             jobConfigVOList = JobConfigVO.toListVO(pageModel.getResult(), domainKey);
 
-           List<Long> jobIdList=
-                   jobConfigVOList.stream().map(jobConfigVO ->jobConfigVO.getId() ).collect(Collectors.toList());
-            Map<Long ,List<AlarmTypeEnum>>  map=  jobAlarmConfigService.findByJobIdList(jobIdList);
+            List<Long> jobIdList =
+                    jobConfigVOList.stream().map(jobConfigVO -> jobConfigVO.getId()).collect(Collectors.toList());
+            Map<Long, List<AlarmTypeEnum>> map = jobAlarmConfigService.findByJobIdList(jobIdList);
 
-            JobConfigVO.buildAlarm(jobConfigVOList,map);
+            JobConfigVO.buildAlarm(jobConfigVOList, map);
 
         }
         modelMap.put("jobConfigList", jobConfigVOList);

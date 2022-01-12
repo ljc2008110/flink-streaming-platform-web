@@ -39,6 +39,7 @@
     <div class="container col-xs-12" id="main-container">
         <script type="text/javascript">
             try{ace.settings.loadState('main-container')}catch(e){}
+            $(function () { $("[data-toggle='tooltip']").tooltip(); });
         </script>
 
     <#--    <#include "../../layout/menu.ftl">-->
@@ -99,7 +100,7 @@
                 </div>
 
                 <div class="panel-body">
-                    <table class="table table-striped table-bordered table-hover">
+                    <table class="table table-hover table-condensed">
                         <thead>
                             <tr>
                                 <th>配置ID</th>
@@ -109,7 +110,7 @@
                                 <th>任务id</th>
                                 <th>上次运行</th>
                                 <th>操作</th>
-                                <th>辅助</th>
+                                <th>辅助<span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" title="默认开启钉钉和自动重启"></span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -129,7 +130,7 @@
                                             <a href="#" class="btn-success btn btn-xs right-arrow-button"
                                                onclick="closeConfig(${jobConfigVO.id})">ON</a>
                                         <#else>
-                                            <a href="#" class="btn-danger btn btn-xs"
+                                            <a href="#" class="btn-danger btn btn-xs right-arrow-button"
                                                onclick="openConfig(${jobConfigVO.id})">OFF</a>
                                         </#if>
                                     </td>

@@ -1,7 +1,6 @@
 package com.flink.streaming.web.ao.impl;
 
 import com.flink.streaming.common.enums.JobTypeEnum;
-import com.flink.streaming.web.alarm.DingDingAlarm;
 import com.flink.streaming.web.ao.AlarmServiceAO;
 import com.flink.streaming.web.ao.JobServerAO;
 import com.flink.streaming.web.ao.TaskServiceAO;
@@ -25,7 +24,6 @@ import com.flink.streaming.web.service.SystemConfigService;
 import com.flink.streaming.web.thread.AlarmDingdingThread;
 import com.flink.streaming.web.thread.AlarmHttpThread;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,7 +32,6 @@ import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -50,31 +47,22 @@ public class TaskServiceAOImpl implements TaskServiceAO {
 
     @Autowired
     private JobConfigService jobConfigService;
-
     @Autowired
     private FlinkRestRpcAdapter flinkRestRpcAdapter;
-
     @Autowired
     private YarnRestRpcAdapter yarnRestRpcAdapter;
-
     @Autowired
     private AlarmServiceAO alarmServiceAO;
-
     @Autowired
     private JobServerAO jobYarnServerAO;
-
     @Autowired
     private JobServerAO jobStandaloneServerAO;
-
     @Autowired
     private SystemConfigService systemConfigService;
-
     @Autowired
     private JobAlarmConfigService jobAlarmConfigService;
-
     @Autowired
     private SavepointBackupService savepointBackupService;
-
     private ThreadPoolExecutor threadPoolExecutor = AlarmPoolConfig.getInstance().getThreadPoolExecutor();
 
     @Override
@@ -132,7 +120,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
         String dupJobs = jobCntMap.entrySet().stream().filter(entry -> entry.getValue() > 1)
                 .map(Map.Entry::getKey).collect(Collectors.joining("\n- ", "- ", "\n"));
         if (!dupJobs.endsWith("- \n")) {
-            this.justDingdingAlarm("## Flink任务状态检测通知\n ### 以下任务重复执行：\n" + dupJobs);
+            alarmServiceAO.justDingdingAlarm("## Flink任务状态检测通知\n ### 以下任务重复执行：\n" + dupJobs, null);
         }
         // 清楚已有异常列表
         this.unexceptedJobMap.clear();
@@ -184,20 +172,15 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                         // 变更任务状态
                         log.info("发现本地任务状态和Cluster上不一致，准备自动更新任务状态 jobStandaloneInfo={}", jobStandaloneInfo);
                         updateJobConfigStatus(jobConfigDTO.getId(), flinkStatus);
+
                     }
                     // 针对失败和未启动任务进行恢复拉起，拉起后更新job状态
                     if (JobConfigStatus.FAIL.equals(jobConfigDTO.getStatus())
                             || JobConfigStatus.UNKNOWN.equals(jobConfigDTO.getStatus())) {
                         try {
                             this.autoRestoreJobStandalone(CallbackDTO.to(jobConfigDTO), SystemConstants.USER_NAME_TASK_AUTO);
-                            sleep(200L);
-                            JobConfigDTO jobConfigDTONew = jobConfigService.getJobConfigById(jobConfigDTO.getId());
-                            jobStandaloneInfo = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(
-                                    jobConfigDTONew.getJobId(), DeployModeEnum.STANDALONE);
-                            jobConfigDTO.setFlinkJobStatus(jobStandaloneInfo.getState());
-                            updateJobConfigStatus(jobConfigDTO.getId(), flinkStatus);
                             toRestoreJobList.add(jobConfigDTO.getJobName());
-                            log.info("任务已恢复：{}，新的任务ID：{}", jobConfigDTO.getJobName(), jobConfigDTONew.getJobId());
+                            log.info("任务已进行恢复中：{}", jobConfigDTO.getJobName());
                         } catch (Exception e) {
                             log.warn("restore job jobid: {}, jobname: {}, fail. {}", jobConfigDTO.getJobId(), jobConfigDTO.getJobName(), e);
                             restoreFail.add(jobConfigDTO.getJobName());
@@ -209,7 +192,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                 + buildMarkdown("恢复失败任务：", restoreFail);
         if (!alarmMsg.isEmpty()) {
             alarmMsg = "## Flink任务状态检测通知\n" + alarmMsg;
-            this.justDingdingAlarm(alarmMsg);
+            alarmServiceAO.justDingdingAlarm(alarmMsg, jobConfigDTOList.stream().map(JobConfigDTO::getId).collect(Collectors.toList()));
         }
     }
 
@@ -224,26 +207,6 @@ public class TaskServiceAOImpl implements TaskServiceAO {
     private void updateJobConfigStatus(Long id, String flinkStatus) {
         JobConfigDTO jobConfig = JobConfigDTO.buildConfig(id, flinkStatus);
         jobConfigService.updateJobConfigById(jobConfig);
-    }
-
-    @Autowired
-    private DingDingAlarm dingDingAlarm;
-    /**
-     * 钉钉告警
-     * @author Kevin.Lin
-     * @date 2022-1-6 16:21:17
-     */
-    private void justDingdingAlarm(final String content) {
-        final String alartUrl = systemConfigService.getSystemConfigByKey(SysConfigEnum.DINGDING_ALARM_URL.getKey());
-        if (StringUtils.isEmpty(alartUrl)) {
-            log.warn("#####钉钉告警url没有设置，无法告警#####");
-            return;
-        }
-        try {
-            dingDingAlarm.send(alartUrl, content);
-        } catch(Exception e) {
-            log.error("dingDingAlarm.send is error", e);
-        }
     }
 
     @Override

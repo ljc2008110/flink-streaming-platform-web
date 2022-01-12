@@ -4,10 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import com.flink.streaming.common.constant.SystemConstant;
 import com.flink.streaming.common.enums.JobTypeEnum;
 import com.flink.streaming.web.ao.JobBaseServiceAO;
-import com.flink.streaming.web.common.MessageConstants;
-import com.flink.streaming.web.common.RestResult;
-import com.flink.streaming.web.common.SystemConstants;
-import com.flink.streaming.web.common.TipsConstants;
+import com.flink.streaming.web.common.*;
 import com.flink.streaming.web.common.util.*;
 import com.flink.streaming.web.config.JobThreadPool;
 import com.flink.streaming.web.enums.*;
@@ -215,7 +212,6 @@ public class JobBaseServiceAOImpl implements JobBaseServiceAO {
                             break;
                     }
 
-
                 } catch (Exception e) {
                     log.error("exe is error", e);
                     localLog.append(e).append(errorInfoDir());
@@ -292,6 +288,7 @@ public class JobBaseServiceAOImpl implements JobBaseServiceAO {
                     jobConfigDTO.setId(jobConfig.getId());
                     JobRunLogDTO jobRunLogDTO = new JobRunLogDTO();
                     jobRunLogDTO.setId(jobRunLogId);
+
                     if (JobStatusEnum.SUCCESS.name().equals(jobStatus) && !StringUtils.isEmpty(appId)) {
 
                         //批任务提交完成后算成功
@@ -317,8 +314,10 @@ public class JobBaseServiceAOImpl implements JobBaseServiceAO {
                     } else {
                         jobConfigDTO.setStatus(JobConfigStatus.FAIL);
                     }
+                    // 任务状态以flink集群为准
+                    JobStandaloneInfo job = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(appId, jobConfig.getDeployModeEnum());
+                    jobConfigDTO.setFlinkJobStatus(Objects.isNull(job) ? null : job.getState());
                     jobConfigService.updateJobConfigById(jobConfigDTO);
-
                     jobRunLogDTO.setJobStatus(jobStatus);
                     jobRunLogDTO.setLocalLog(localLog);
                     jobRunLogService.updateJobRunLogById(jobRunLogDTO);

@@ -2,6 +2,8 @@ package com.flink.streaming.web.ao;
 
 import com.flink.streaming.web.model.vo.CallbackDTO;
 
+import java.util.List;
+
 /**
  * @author zhuhuipei
  * @Description
@@ -9,6 +11,13 @@ import com.flink.streaming.web.model.vo.CallbackDTO;
  * @time 19:50
  */
 public interface AlarmServiceAO {
+
+    /**
+     * 钉钉告警
+     * @author Kevin.Lin
+     * @date 2022-1-6 16:21:17
+     */
+    void justDingdingAlarm(String content, List<Long> jobConfigIdList);
 
     /**
      * 发送钉钉告警消息
