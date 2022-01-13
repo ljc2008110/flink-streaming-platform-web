@@ -37,7 +37,7 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
     @Override
     public JobStandaloneInfo getJobInfoForStandaloneByAppId(String appId, DeployModeEnum deployModeEnum) {
         if (StringUtils.isEmpty(appId)) {
-            throw new BizException(SysErrorEnum.HTTP_REQUEST_IS_NULL);
+            return null;
         }
         String res = null;
         JobStandaloneInfo jobStandaloneInfo = null;

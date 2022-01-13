@@ -208,7 +208,8 @@ public class JobBaseServiceAOImpl implements JobBaseServiceAO {
                             command = CommandUtil.buildRunCommandForCluster(jmPath, jobRunParamDTO, jobConfigDTO, savepointPath);
                             //2、提交任务
                             appId = this.submitJobForStandalone(command, jobConfigDTO, localLog);
-
+                            break;
+                        default:
                             break;
                     }
 
@@ -344,7 +345,7 @@ public class JobBaseServiceAOImpl implements JobBaseServiceAO {
                     if (!SystemConstants.STATUS_RUNNING.equals(jobStandaloneInfo.getState())
                             && !SystemConstants.STATUS_FINISHED.equals(jobStandaloneInfo.getState())) {
                         localLog.append("\n 任务失败 appId=" + appId).append("状态是：" + jobStandaloneInfo.getState());
-                        throw new BizException("[submitJobForStandalone]任务失败");
+                        throw new BizException("[submitJobForStandalone]任务失败, jobId：" + appId);
                     }
                 }
                 return appId;
