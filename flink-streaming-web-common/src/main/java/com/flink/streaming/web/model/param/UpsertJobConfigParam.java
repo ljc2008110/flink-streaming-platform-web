@@ -82,6 +82,11 @@ public class UpsertJobConfigParam {
      */
     private String customJarUrl;
 
+    /**
+     * 从savepoint恢复启动开关， 1：开启，0：关闭；
+     * 默认开启-1
+     */
+    private Integer autoRestore = 1;
 
     /**
      * 1:开启 0: 关闭
@@ -107,8 +112,8 @@ public class UpsertJobConfigParam {
         jobConfigDTO.setFlinkCheckpointConfig(upsertJobConfigParam.getFlinkCheckpointConfig());
 
         if (StringUtils.isNotEmpty(upsertJobConfigParam.getFlinkSql())
-                && (JobTypeEnum.SQL_STREAMING.getCode() == upsertJobConfigParam.getJobType().intValue()
-                || JobTypeEnum.SQL_BATCH.getCode() == upsertJobConfigParam.getJobType().intValue())) {
+                && (JobTypeEnum.SQL_STREAMING.getCode() == upsertJobConfigParam.getJobType()
+                || JobTypeEnum.SQL_BATCH.getCode() == upsertJobConfigParam.getJobType())) {
             jobConfigDTO.setFlinkSql(upsertJobConfigParam.getFlinkSql());
         } else {
             jobConfigDTO.setFlinkSql(SystemConstant.SPACE);
@@ -119,6 +124,7 @@ public class UpsertJobConfigParam {
         jobConfigDTO.setCustomMainClass(upsertJobConfigParam.getCustomMainClass());
         jobConfigDTO.setCustomJarUrl(upsertJobConfigParam.getCustomJarUrl());
 
+        jobConfigDTO.setAutoRestore(upsertJobConfigParam.getAutoRestore());
         jobConfigDTO.setIsOpen(upsertJobConfigParam.getIsOpen());
         jobConfigDTO.setStatus(JobConfigStatus.getJobConfigStatus(upsertJobConfigParam.getStauts()));
         if (StringUtils.isNotEmpty(upsertJobConfigParam.getExtJarPath())) {

@@ -73,8 +73,8 @@
         values (#{jobName,jdbcType=VARCHAR}, #{deployMode,jdbcType=VARCHAR},
         #{flinkRunConfig,jdbcType=VARCHAR},
         #{flinkCheckpointConfig,jdbcType=VARCHAR}, #{jobId,jdbcType=VARCHAR}, #{isOpen,jdbcType=BIT},
-        #{stauts,jdbcType=BIT}, #{lastStartTime,jdbcType=TIMESTAMP}, 0,#{jobType,jdbcType=BIT},
-        #{customArgs,jdbcType=VARCHAR},#{customMainClass,jdbcType=VARCHAR},#{customJarUrl,jdbcType=VARCHAR},
+        #{stauts,jdbcType=BIT}, #{lastStartTime,jdbcType=TIMESTAMP}, 0, #{jobType,jdbcType=BIT},
+        #{customArgs,jdbcType=VARCHAR}, #{customMainClass,jdbcType=VARCHAR}, #{customJarUrl,jdbcType=VARCHAR},
         0, now(), now(),
         #{creator,jdbcType=VARCHAR}, #{editor,jdbcType=VARCHAR}, #{flinkSql,jdbcType=LONGVARCHAR},
         #{extJarPath,jdbcType=VARCHAR}, #{autoRestore, jdbcType=BIT}
