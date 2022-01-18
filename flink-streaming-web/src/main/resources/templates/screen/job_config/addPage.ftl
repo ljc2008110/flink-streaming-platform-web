@@ -25,23 +25,21 @@
 </head>
 
 <body class="no-skin">
-<!-- start top-->
+    <!-- start top-->
     <div id="navbar" class="navbar navbar-default          ace-save-state">
         <#include "../../layout/top.ftl">
     </div>
-<!-- end top-->
-<div class="main-container ace-save-state" id="main-container">
-    <script type="text/javascript">
-        try{ace.settings.loadState('main-container')}catch(e){}
-    </script>
+    <!-- end top-->
+    <div class="container col-xs-12" id="main-container">
+        <script type="text/javascript">
+            try{ace.settings.loadState('main-container')}catch(e){}
+        </script>
 
-    <#include "../../layout/menu.ftl">
+        <#include "../../layout/menu.ftl">
 
 
-    <div class="main-content">
-        <div class="main-content-inner">
-
-            <div class="breadcrumbs ace-save-state" id="breadcrumbs">
+        <div class="row">
+            <div class="breadcrumbs" id="breadcrumbs">
                 <ul class="breadcrumb">
                     <li>
                         <a href="#">配置管理</a>
@@ -49,98 +47,109 @@
                     <li class="active">新增流任务</li>
                 </ul>
             </div>
+        </div>
 
-
-            <div class="page-content">
-
-                <div class="row">
-                    <div class="col-xs-12">
-                        <input type="hidden" name="jobType" id="jobType" value="0">
-                        <div class="panel-body">
-                            <div class="form-group">
-                                <label for="inputfile">相关配置说明详见：</label>
-                                <a href="https://github.com/zhp8341/flink-streaming-platform-web/blob/master/docs/manual-sql.md"
-                                   target="_blank">点击查看</a>
-                            </div>
-                            <div class="form-group">
-                                <label for="inputfile">告警辅助配置：</label>
-
-                                <label class="checkbox-inline">
-                                    <input type="checkbox" name="alarmType" value="1" />
-                                    钉钉告警
-                                </label>
-                                <label class="checkbox-inline">
-                                    <input type="checkbox" name="alarmType" value="2" />
-                                    http回调告警
-                                </label>
-                                <label class="checkbox-inline">
-                                    <input type="checkbox" name="alarmType" value="3" />
-                                    任务退出自动拉起
-                                </label>
-                            </div>
-                            <div class="form-group">
-                                <label for="inputfile">*任务名称：</label>
-                                <input class="form-control " type="text" placeholder="任务名称" name="jobName" id="jobName">
-                            </div>
-                            <div class="form-group">
-                                <label for="inputfile">*运行模式：</label>
-                                <select class="form-control " id="deployMode">
-                                    <option value="">请选择</option>
-                                    <option value="YARN_PER">YARN_PER</option>
-                                    <option value="LOCAL">Local Cluster</option>
-                                    <option value="STANDALONE">Standalone Cluster</option>
-                                </select>
-                            </div>
-                            <div class="form-group" id="configDiv">
-                                <label for="inputfile" >*flink运行配置(如yarn模式 -yjm 1024m -ytm 1024m -p 1 -yqu streaming)：</label>
-                                <input class="form-control " type="text" name="flinkRunConfig" id="flinkRunConfig">
-                            </div>
-                            <div class="form-group">
-                                <label for="inputfile" data-toggle="tooltip" data-placement="bottom"
-                                       title="不填默认不开启checkpoint机制 参数只支持 -checkpointInterval -checkpointingMode -checkpointTimeout -checkpointDir -tolerableCheckpointFailureNumber -asynchronousSnapshots 如  -asynchronousSnapshots true  -checkpointDir  hdfs//XXX/flink/checkpoint/ -externalizedCheckpointCleanup DELETE_ON_CANCELLATION or RETAIN_ON_CANCELLATION">Checkpoint信息：</label>
-                                <input class="form-control " type="text"
-                                       placeholder="Checkpoint信息 如   -checkpointDir  hdfs//XXX/flink/checkpoint/"
-                                       name="flinkCheckpointConfig" id="flinkCheckpointConfig">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="inputfile" >三方jar地址 (自定义udf、连接器等jar地址
-                                    多个用换行(如 http://xxxx.com/udf.jar) 目前只支持http )</label>
-                                <textarea class="form-control"  name="extJarPath" id="extJarPath" rows="5" ></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="inputfile">*sql语句：</label>
-                                <textarea name="flinkSql" id="flinkSql"> </textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <a class="btn btn-info btn-sm" onclick="addConfig()" href="#errorMessage">提交保存</a>
-                                <a class="btn btn-success btn-sm " style="margin-left: 60px"
-                                   onclick="autoFormatSelection()"> 格式化代码</a>
-                                <a class="btn  btn-warning btn-sm" style="margin-left: 60px"  onclick="checkSql()">
-                                    sql预校验</a>
-                            </div>
-
-                            <div class="form-group">
-                                <h5  style="color: #FFB752"> sql预校验 备注：只能校验单个sql语法正确与否,
-                                    不能校验上下文之间关系，如：这张表是否存在
-                                    数据类型是否正确等无法校验,总之不能完全保证运行的时候sql没有异常，只是能校验出一些语法错误
-                                </h5>
-                            </div>
-
-                            <div class="form-group">
-                                <label name="errorMessage" id="errorMessage"></label>
-                            </div>
-
-
+        <div class="row">
+            <div class="col-xs-12">
+                <input type="hidden" name="jobType" id="jobType" value="0" />
+                <div class="form-horizontal col-xs-12 panel-body">
+                    <div class="form-group">
+                        <label for="jobName" class="control-label col-sm-1">*任务名称：</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" type="text" placeholder="任务名称" name="jobName" id="jobName">
                         </div>
 
-                        <!-- PAGE CONTENT ENDS -->
-                    </div><!-- /.col -->
-                </div><!-- /.row -->
-            </div><!-- /.page-content -->
-        </div>
+                        <label for="deployMode" class="col-sm-1 control-label">*运行模式：</label>
+                        <div class="col-sm-2">
+                            <select class="form-control" id="deployMode">
+                                <option value="">请选择</option>
+                                <option value="YARN_PER">YARN_PER</option>
+                                <option value="LOCAL">Local Cluster</option>
+                                <option value="STANDALONE">Standalone Cluster</option>
+                            </select>
+                        </div>
+
+                        <label for="alarmType" class="col-sm-1 control-label">辅助配置：</label>
+                        <div class="col-sm-3 checkbox">
+                            <label><input type="checkbox" name="alarmType" value="1" checked /> 钉钉告警</label>
+                            <label><input type="checkbox" name="alarmType" value="2" /> Http回调告警</label>
+                            <label><input type="checkbox" name="alarmType" value="3" checked /> 退出自动拉起</label>
+                            <label><input type="checkbox" name="autoRestore" value="1" />自动恢复savepoint</label>
+                        </div>
+
+                        <div class="col-sm-1 checkbox">
+                            <a href="https://github.com/ljc2008110/flink-streaming-platform-web/blob/master/docs/manual-sql.md"
+                                target="_blank">配置说明</a>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="flinkRunConfig" class="col-sm-1 control-label">
+                            *Flink运行配置：
+                        </label>
+                        <div class="col-sm-3">
+                            <textarea class="form-control " name="flinkRunConfig" id="flinkRunConfig" rows="2"
+                                      placeholder="如yarn模式：-yjm 1024m -ytm 1024m -p 1 -yqu streaming"></textarea>
+                        </div>
+
+                        <label for="flinkCheckpointConfig" class="col-sm-1 control-label">
+                            Checkpoint信息：
+                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-html="true" data-placement="auto top"
+                                  title="不填默认不开启checkpoint机制，参数只支持
+                                   -checkpointInterval
+                                   -checkpointingMode
+                                   -checkpointTimeout
+                                   -checkpointDir
+                                   -tolerableCheckpointFailureNumber
+                                   -asynchronousSnapshots 如:-asynchronousSnapshots true
+                                   -checkpointDir  hdfs//XXX/flink/checkpoint/
+                                   -externalizedCheckpointCleanup DELETE_ON_CANCELLATION or RETAIN_ON_CANCELLATION"></span>
+                        </label>
+                        <div class="col-sm-7">
+                            <textarea class="form-control"  name="flinkCheckpointConfig" id="flinkCheckpointConfig"
+                                      placeholder="Checkpoint信息 如   -checkpointDir  hdfs//XXX/flink/checkpoint/" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="extJarPath" class="col-sm-1 control-label">三方jar地址：</label>
+                        <div class="col-sm-11">
+                            <textarea class="form-control"  name="extJarPath" id="extJarPath" rows="2"
+                                placeholder=" 自定义udf、连接器等jar地址，多个用换行(如 http://xxxx.com/udf.jar)。目前只支持http。"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="flinkSql" class="col-sm-1 control-label">*SQL语句：</label>
+                        <div class="col-sm-12">
+                            <textarea name="flinkSql" id="flinkSql"> </textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <a class="btn btn-info btn-sm" onclick="addConfig()" href="#errorMessage">提交保存</a>
+                            <a class="btn btn-success btn-sm " style="margin-left: 60px"
+                               onclick="autoFormatSelection()"> 格式化代码</a>
+                            <a class="btn btn-warning btn-sm" style="margin-left: 60px"  onclick="checkSql()">
+                                sql预校验</a>
+                        </div>
+                        <div class="col-sm-9">
+                            <div name="errorMessage" id="errorMessage">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    <h5 style="color: #FFB752">
+                        sql预校验 备注：只能校验单个sql语法正确与否，不能校验上下文之间关系，
+                        如：这张表是否存在数据类型是否正确等无法校验，总之不能完全保证运行的时候sql没有异常，只是能校验出一些语法错误。
+                    </h5>
+                </div>
+                <!-- PAGE CONTENT ENDS -->
+            </div><!-- /.col -->
+        </div><!-- /.row -->
     </div><!-- /.main-content -->
 
 
@@ -155,7 +164,7 @@
         mode: "flink/x-fsql",
         lineNumbers: true,//显示行数
         matchBrackets: true,  // 括号匹配（这个需要导入codemirror的matchbrackets.js文件）
-        indentUnit: 4,//缩进块用多少个空格表示 默认是2
+        indentUnit: 2,//缩进块用多少个空格表示 默认是2
         theme: "mbo",
         extraKeys: {'Ctrl': 'autocomplete'},//自定义快捷键
         hintOptions: {//自定义提示选项
@@ -181,7 +190,7 @@
         }
     });
 
-    editor.setSize('auto', '750px');
+    editor.setSize('auto', '550px');
 
     //代码自动提示功能，记住使用cursorActivity事件不要使用change事件，这是一个坑，那样页面直接会卡死
     editor.on('keypress', function () {
@@ -219,10 +228,10 @@
             function (data, status) {
                 $("#errorMessage").removeClass();
                 if (data!=null && data.success){
-                    $("#errorMessage").addClass("form-group alert alert-success")
+                    $("#errorMessage").addClass("alert alert-success alert-dismissable")
                     $("#errorMessage").html("校验Sql通过");
                 }else{
-                    $("#errorMessage").addClass("form-group alert alert-danger")
+                    $("#errorMessage").addClass("alert alert-danger alert-dismissable")
                     $("#errorMessage").html(data.message);
 
                 }
