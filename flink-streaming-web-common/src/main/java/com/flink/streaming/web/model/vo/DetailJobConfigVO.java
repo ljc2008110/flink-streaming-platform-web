@@ -107,6 +107,8 @@ public class DetailJobConfigVO {
 
     private List<Integer> types;
 
+    private Integer autoRestore;
+
 
     public static DetailJobConfigVO toVO(JobConfigDTO jobConfigDTO) {
         if (jobConfigDTO == null) {
@@ -146,7 +148,7 @@ public class DetailJobConfigVO {
         if (jobConfigDTO.getJobTypeEnum()!=null){
             detailJobConfigVO.setJobType(jobConfigDTO.getJobTypeEnum().getCode());
         }
-
+        detailJobConfigVO.setAutoRestore(jobConfigDTO.getAutoRestore());
 
         return detailJobConfigVO;
     }

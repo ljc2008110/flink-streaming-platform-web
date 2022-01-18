@@ -42,11 +42,6 @@
                     </div>
                 <#else >
                     <div class="form-group">
-                        <label for="inputfile" class="control-label col-sm-1">*任务名称：</label>
-                        <div class="col-sm-3">
-                            <input class="form-control " type="text" placeholder="任务名称" name="jobName"  value="${jobConfig.jobName!""}" id="jobName" readonly>
-                        </div>
-
                         <label for="inputfile" class="col-sm-1 control-label">任务状态：</label>
                         <div class="col-sm-1">
                             <a class="btn btn-sm left-arrow-button
@@ -75,9 +70,39 @@
                         <div class="col-sm-2">
                             <a href="#" class="btn-primary btn btn-sm left-arrow-button">${jobConfig.deployMode!""}</a>
                         </div>
-
-                        <div class="col-sm-1">
+                        <div class="col-sm-3"></div>
+                        <div class="col-sm-2">
                             <a class="btn btn-primary btn-sm left-button" href="/admin/editPage?id=${jobConfig.id!""}" >编辑</a>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputfile" class="control-label col-sm-1">*任务名称：</label>
+                        <div class="col-sm-3">
+                            <input class="form-control " type="text" placeholder="任务名称" name="jobName"  value="${jobConfig.jobName!""}" id="jobName" readonly>
+                        </div>
+
+                        <label for="alarmType" class="col-sm-1 control-label">辅助配置：</label>
+                        <div class="col-sm-3 checkbox">
+                            <label>
+                                <input type="checkbox" name="alarmType" value="1"  <#if jobConfig.types??&&
+                                jobConfig.types?seq_contains(1) > checked </#if> disabled/>
+                                钉钉告警
+                            </label>
+                            <label>
+                                <input type="checkbox" name="alarmType" value="2"  <#if jobConfig.types??&&
+                                jobConfig.types?seq_contains(2) > checked </#if> disabled/>
+                                Http回调告警
+                            </label>
+                            <label>
+                                <input type="checkbox" name="alarmType" value="3" <#if jobConfig.types??&&
+                                jobConfig.types?seq_contains(3) > checked </#if> disabled/>
+                                退出自动拉起
+                            </label>
+                            <label>
+                                <input type="checkbox" name="autoRestore" value="1" <#if jobConfig.autoRestore??&&
+                                jobConfig.autoRestore==1 > checked </#if> disabled/>
+                                自动恢复savepoint
+                            </label>
                         </div>
                     </div>
                     <div class="form-group">
