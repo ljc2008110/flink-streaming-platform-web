@@ -273,5 +273,7 @@
 
 
 <script src="/static/js/customer/list_job_config.js?version=20210123"></script>
+<script src="/static/js/customer/job_op.js?version=20210123"></script>
+<script src="/static/js/customer/modal_op.js?version=20210123"></script>
 </body>
 </html>

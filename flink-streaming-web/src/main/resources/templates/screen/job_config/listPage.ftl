@@ -43,6 +43,7 @@
         </script>
 
     <#--    <#include "../../layout/menu.ftl">-->
+        <#include "../../modal/job_config_modal.ftl">
 
         <div class="row">
             <div class="breadcrumbs" id="breadcrumbs">
@@ -162,7 +163,7 @@
                                                 <li>
                                                     <#if jobConfigVO.isOpen==1>
                                                         <#if 0 < jobConfigVO.stauts && jobConfigVO.stauts != 97>
-                                                            <a href="#" onclick="stop(${jobConfigVO.id})">停止任务</a>
+                                                            <a href="#" onclick="stopJob(${jobConfigVO.id}, '${jobConfigVO.jobName}')">停止任务</a>
                                                         <#else>
                                                             <a href="#" onclick="start(${jobConfigVO.id})">提交任务</a>
                                                         </#if>
@@ -259,5 +260,7 @@
     <#include "../../layout/bottom.ftl">
 
     <script src="/static/js/customer/list_job_config.js?version=20210123"></script>
+    <script src="/static/js/customer/job_op.js?version=20210123"></script>
+    <script src="/static/js/customer/modal_op.js?version=20210123"></script>
 </body>
 </html>

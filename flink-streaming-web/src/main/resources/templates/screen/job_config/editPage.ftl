@@ -18,13 +18,14 @@
     <script type="text/javascript" src="/static/codemirror/hint/show-hint.js?version=20210123"></script>
     <script type="text/javascript" src="/static/codemirror/hint/sql-hint.js?version=20210123"></script>
     <script type="text/javascript" src="/static/codemirror/hint/formatting.js?version=20210123"></script>
+    <script src="/static/js/customer/job_op.js?version=20210123"></script>
+    <script src="/static/js/customer/modal_op.js?version=20210123"></script>
+    <script src="/static/js/customer/common.js?version=20210123"></script>
 
     <style>
         label{font-weight: 800}
     </style>
 </head>
-
-
 
 <body class="no-skin">
     <!-- start top-->
@@ -39,7 +40,7 @@
         </script>
 
         <#include "../../layout/menu.ftl">
-
+        <#include "../../modal/job_config_modal.ftl">
 
         <div class="row">
             <div class="breadcrumbs" id="breadcrumbs">
@@ -56,9 +57,13 @@
             <div class="col-xs-12">
                 <input type="hidden" name="jobType" id="jobType" value="0">
                 <div class="form-horizontal col-xs-12 panel-body">
-                    <input type="hidden"  name="id"  id="id"  value="${jobConfig.id}" />
                     <div class="form-group">
-                        <label for="inputfile" class="col-sm-1 control-label">任务状态：</label>
+                        <label for="id" class="col-sm-1 control-label">任务ID：</label>
+                        <div class="col-sm-1">
+                            <input type="text"  class="form-control" name="id"  id="id"  value="${jobConfig.id}" readonly />
+                        </div>
+
+                        <label class="col-sm-1 control-label">任务状态：</label>
                         <div class="col-sm-1">
                             <a class="btn btn-sm
                                 <#if jobConfig.stauts==1>
@@ -67,35 +72,49 @@
                                     <#if jobConfig.stauts==-1>
                                         btn-danger
                                     <#else>
+                                        btn-default
                                     </#if>
                                 </#if>">${jobConfig.stautsStr!""}</a>
                         </div>
 
-                        <label for="inputfile" class="col-sm-1 control-label">配置是否开启：</label>
+                        <label class="col-sm-1 control-label">配置是否开启：</label>
                         <div class="col-sm-1">
                             <#if jobConfig.isOpen==1>
-                                <a href="#" class="btn-success btn btn-sm left-arrow-button"
-                                   onclick="closeConfig(${jobConfig.id})">ON</a>
+                                <a href="#" class="btn-success btn btn-sm left-arrow-button" id="jobOpenStatus"
+                                   onclick="showOpenModal(${jobConfig.id}, '${jobConfig.jobName}', ${jobConfig.isOpen})">ON</a>
                             <#else>
-                                <a href="#" class="btn-danger btn btn-sm left-arrow-button"
-                                   onclick="openConfig(${jobConfig.id})">OFF</a>
+                                <a href="#" class="btn-danger btn btn-sm left-arrow-button" id="jobOpenStatus"
+                                   onclick="showOpenModal(${jobConfig.id}, '${jobConfig.jobName}', ${jobConfig.isOpen})">OFF</a>
                             </#if>
                         </div>
 
-                        <div class="col-sm-8 control-label">
+                        <div class="col-sm-6 control-label">
+                            <a href="#" onclick="refresh()" class="btn btn-sm btn-warning">刷新</a>
+                            <#if jobConfig.stauts==1>
+                                <a href="#" onclick="stopJob(${jobConfig.id}, '${jobConfig.jobName}')"
+                                   class="btn btn-sm btn-danger">停止任务</a>
+                            <#else>
+                                <#if jobConfig.stauts==-1 || jobConfig.stauts==0>
+                                    <a href="#" onclick="start(${jobConfig.id}, '${jobConfig.jobName}')"
+                                       class="btn btn-sm btn-success">启动任务</a>
+                                <#else>
+                                    <a href="#" onclick="start(${jobConfig.id}, '${jobConfig.jobName}')"
+                                       class="btn btn-sm btn-default">不允许操作</a>
+                                </#if>
+                            </#if>
                             <a href="https://github.com/zhp8341/flink-streaming-platform-web/blob/master/docs/manual-sql.md"
-                               class="btn btn-sm btn-success" target="_blank">配置说明</a>
+                                class="btn btn-sm btn-success" target="_blank">配置说明</a>
                             <a href="/admin/jobConfigHistoryPage?jobConfigId=${jobConfig.id}"
-                               class="btn btn-sm btn-warning" target="_blank">历史版本</a>
+                                class="btn btn-sm btn-warning" target="_blank">历史版本</a>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="inputfile" class="control-label col-sm-1">*任务名称：</label>
+                        <label for="jobName" class="control-label col-sm-1">*任务名称：</label>
                         <div class="col-sm-3">
                             <input class="form-control " type="text" placeholder="任务名称" name="jobName"  value="${jobConfig.jobName!""}"   id="jobName" >
                         </div>
 
-                        <label for="inputfile" class="control-label col-sm-1">*运行模式：</label>
+                        <label for="deployMode" class="control-label col-sm-1">*运行模式：</label>
                         <div class="col-sm-2">
                             <select class="form-control " id="deployMode">
                                 <option value="YARN_PER"  <#if jobConfig.deployMode??&& jobConfig.deployMode=="YARN_PER" > selected </#if> >YARN_PER</option>
@@ -130,10 +149,11 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="flinkRunConfig" class="col-sm-1 control-label" data-toggle="tooltip" title="如yarn模式 -yjm 1024m -ytm 1024m -p 1 -yqu streaming">*Flink运行配置：</label>
+                        <label for="flinkRunConfig" class="col-sm-1 control-label" data-toggle="tooltip"
+                               title="如yarn模式 -yjm 1024m -ytm 1024m -p 1 -yqu streaming">*Flink运行配置：</label>
                         <div class="col-sm-3">
                             <textarea class="form-control" name="flinkRunConfig" id="flinkRunConfig"
-                                      rows="2">${jobConfig.flinkRunConfig!""}</textarea>
+                               placeholder="如yarn模式 -yjm 1024m -ytm 1024m -p 1 -yqu streaming" rows="2">${jobConfig.flinkRunConfig!""}</textarea>
                         </div>
 
                         <label for="flinkCheckpointConfig" class="col-sm-1 control-label" data-toggle="tooltip"  data-placement="bottom" title="不填默认不开启checkpoint机制 参数只支持 -checkpointInterval -checkpointingMode -checkpointTimeout -checkpointDir -tolerableCheckpointFailureNumber -asynchronousSnapshots 如  -asynchronousSnapshots true  -checkpointDir  hdfs//XXX/flink/checkpoint/ ">Checkpoint信息：</label>
@@ -147,7 +167,8 @@
                         <label for="extJarPath"  class="col-sm-1 control-label" data-toggle="tooltip"
                                title="自定义udf、连接器等jar地址，多个用换行(如 http://xxxx.com/udf.jar)。目前只支持http。">三方jar地址：</label>
                         <div class="col-sm-11">
-                            <textarea class="form-control"  name="extJarPath" id="extJarPath" rows="2" >${jobConfig.extJarPath!""}</textarea>
+                            <textarea class="form-control"  name="extJarPath" id="extJarPath" rows="2"
+                                    placeholder="自定义udf、连接器等jar地址，多个用换行(如 http://xxxx.com/udf.jar)。目前只支持http。">${jobConfig.extJarPath!""}</textarea>
                         </div>
                     </div>
 
@@ -191,139 +212,157 @@
 
     <#include "../../layout/bottom.ftl">
 
-<script>
-    var flinkSqlVal;
-    myTextarea = document.getElementById("flinkSql");
-    var editor = CodeMirror.fromTextArea(myTextarea, {
-        mode: "flink/x-fsql",
-        lineNumbers: true,//显示行数
-        matchBrackets: true,  // 括号匹配（这个需要导入codemirror的matchbrackets.js文件）
-        indentUnit: 4,//缩进块用多少个空格表示 默认是2
-        theme: "mbo",
-        extraKeys: {'Ctrl': 'autocomplete'},//自定义快捷键
-        hintOptions: {//自定义提示选项
-            completeSingle: false, // 当匹配只有一项的时候是否自动补全
-            tables: {
-                'table.dynamic-table-options.enabled': [],
-                'table.sql-dialect': [],
-                'table.local-time-zone': [],
-                'table.generated-code.max-length': [],
-                'table.exec': ['state.ttl', 'source.idle-timeout',
-                    'source.cdc-events-duplicate', 'window-agg.buffer-size-limit', 'source.cdc-events-duplicate',
-                    'mini-batch.enabled', 'mini-batch.allow-latency', 'mini-batch.enabled', 'mini-batch.allow-latency',
-                    'mini-batch.size', 'sink.not-null-enforcer', 'resource.default-parallelism', 'async-lookup.buffer-capacity',
-                    'async-lookup.timeout'],
-                'table.optimizer': ['distinct-agg.split.enabled',
-                    'distinct-agg.split.bucket-num',
-                    'agg-phase-strategy',
-                    'reuse-sub-plan-enabled',
-                    'reuse-source-enabled',
-                    'source.predicate-pushdown-enabled',
-                    'join-reorder-enabled'],
-            }
-
-        }
-    });
-    editor.setSize('auto','550px');
-
-    //代码自动提示功能，记住使用cursorActivity事件不要使用change事件，这是一个坑，那样页面直接会卡死
-    editor.on('keypress', function () {
-        editor.showHint()
-    });
-
-
-    function getSelectedRange() {
-        return { from: editor.getCursor(true), to: editor.getCursor(false) };
-    }
-
-    function autoFormatSelection() {
-        CodeMirror.commands["selectAll"](editor);
-        var range = getSelectedRange();
-        editor.autoFormatRange(range.from, range.to);
-    }
-
-    function commentSelection(isComment) {
-        var range = getSelectedRange();
-        editor.commentRange(isComment, range.from, range.to);
-    }
-
-
-
-    $(function () { $("[data-toggle='tooltip']").tooltip(); });
-
-
-    function checkSql(){
-        flinkSqlVal=editor.getValue();
-        $.post("../api/checkfSql", {
-                flinkSql:   flinkSqlVal
-            },
-            function (data, status) {
-                $("#errorMessage").removeClass();
-                if (data!=null && data.success){
-                    $("#errorMessage").addClass("form-group alert alert-success")
-                    $("#errorMessage").html("校验Sql通过");
-                }else{
-                    $("#errorMessage").addClass("form-group alert alert-danger")
-                    $("#errorMessage").html(data.message);
-
+    <script>
+        var flinkSqlVal;
+        myTextarea = document.getElementById("flinkSql");
+        var editor = CodeMirror.fromTextArea(myTextarea, {
+            mode: "flink/x-fsql",
+            lineNumbers: true,//显示行数
+            matchBrackets: true,  // 括号匹配（这个需要导入codemirror的matchbrackets.js文件）
+            indentUnit: 4,//缩进块用多少个空格表示 默认是2
+            theme: "mbo",
+            extraKeys: {'Ctrl': 'autocomplete'},//自定义快捷键
+            hintOptions: {//自定义提示选项
+                completeSingle: false, // 当匹配只有一项的时候是否自动补全
+                tables: {
+                    'table.dynamic-table-options.enabled': [],
+                    'table.sql-dialect': [],
+                    'table.local-time-zone': [],
+                    'table.generated-code.max-length': [],
+                    'table.exec': ['state.ttl', 'source.idle-timeout',
+                        'source.cdc-events-duplicate', 'window-agg.buffer-size-limit', 'source.cdc-events-duplicate',
+                        'mini-batch.enabled', 'mini-batch.allow-latency', 'mini-batch.enabled', 'mini-batch.allow-latency',
+                        'mini-batch.size', 'sink.not-null-enforcer', 'resource.default-parallelism', 'async-lookup.buffer-capacity',
+                        'async-lookup.timeout'],
+                    'table.optimizer': ['distinct-agg.split.enabled',
+                        'distinct-agg.split.bucket-num',
+                        'agg-phase-strategy',
+                        'reuse-sub-plan-enabled',
+                        'reuse-source-enabled',
+                        'source.predicate-pushdown-enabled',
+                        'join-reorder-enabled'],
                 }
 
             }
-        );
-    }
+        });
+        editor.setSize('auto','550px');
 
-    function editConfig() {
-        flinkSqlVal=editor.getValue();
-
-        var chk_value =[];//定义一个数组
-        $('input[name="alarmType"]:checked').each(function(){
-            chk_value.push($(this).val());
+        //代码自动提示功能，记住使用cursorActivity事件不要使用change事件，这是一个坑，那样页面直接会卡死
+        editor.on('keypress', function () {
+            editor.showHint()
         });
 
-        $.post("../api/editConfig", {
-                id: $('#id').val(),
-                jobName: $('#jobName').val(),
-                deployMode: $('#deployMode').val(),
-                flinkRunConfig:  $('#flinkRunConfig').val(),
-                flinkCheckpointConfig: $('#flinkCheckpointConfig').val(),
-                flinkSql:   flinkSqlVal,
-                jobType: $('#jobType').val(),
-                alarmTypes:   chk_value.toString(),
-                extJarPath:  $('#extJarPath').val()
-            },
-            function (data, status) {
-                $("#errorMessage").removeClass();
-                if (data!=null && data.success){
-                    $("#errorMessage").addClass("form-group alert alert-success")
-                    $("#errorMessage").html("修改成功");
-                }else{
-                    $("#errorMessage").addClass("form-group alert alert-danger")
-                    $("#errorMessage").html(data.message);
+
+        function getSelectedRange() {
+            return { from: editor.getCursor(true), to: editor.getCursor(false) };
+        }
+
+        function autoFormatSelection() {
+            CodeMirror.commands["selectAll"](editor);
+            var range = getSelectedRange();
+            editor.autoFormatRange(range.from, range.to);
+        }
+
+        function commentSelection(isComment) {
+            var range = getSelectedRange();
+            editor.commentRange(isComment, range.from, range.to);
+        }
+
+
+
+        $(function () { $("[data-toggle='tooltip']").tooltip(); });
+
+
+        function checkSql(){
+            flinkSqlVal=editor.getValue();
+            $.post("../api/checkfSql", {
+                    flinkSql:   flinkSqlVal
+                },
+                function (data, status) {
+                    $("#errorMessage").removeClass();
+                    if (data!=null && data.success){
+                        $("#errorMessage").addClass("form-group alert alert-success")
+                        $("#errorMessage").html("校验Sql通过");
+                    }else{
+                        $("#errorMessage").addClass("form-group alert alert-danger")
+                        $("#errorMessage").html(data.message);
+
+                    }
 
                 }
-
-            }
-        );
-    }
-
-
-    $(document).ready(function(){
-        initDeployMode()
-        $('#deployMode').change(function() {
-            initDeployMode()
-        })
-    });
-    function  initDeployMode(){
-        if ("LOCAL" == $('#deployMode').val()){
-            $("#configDiv").hide();
-        } else {
-            $("#configDiv").show();
+            );
         }
-    }
 
-    $(window).bind('beforeunload',function(){
-        return '确定要离开当前页面吗?';
-    });
-</script>
+        function editConfig() {
+            flinkSqlVal=editor.getValue();
+
+            var chk_value =[];//定义一个数组
+            $('input[name="alarmType"]:checked').each(function(){
+                chk_value.push($(this).val());
+            });
+
+            $.post("../api/editConfig", {
+                    id: $('#id').val(),
+                    jobName: $('#jobName').val(),
+                    deployMode: $('#deployMode').val(),
+                    flinkRunConfig:  $('#flinkRunConfig').val(),
+                    flinkCheckpointConfig: $('#flinkCheckpointConfig').val(),
+                    flinkSql:   flinkSqlVal,
+                    jobType: $('#jobType').val(),
+                    alarmTypes:   chk_value.toString(),
+                    extJarPath:  $('#extJarPath').val()
+                },
+                function (data, status) {
+                    $("#errorMessage").removeClass();
+                    if (data!=null && data.success){
+                        $("#errorMessage").addClass("form-group alert alert-success")
+                        $("#errorMessage").html("修改成功");
+                    }else{
+                        $("#errorMessage").addClass("form-group alert alert-danger")
+                        $("#errorMessage").html(data.message);
+
+                    }
+
+                }
+            );
+        }
+
+        $(document).ready(function(){
+            initDeployMode()
+            $('#deployMode').change(function() {
+                initDeployMode()
+            })
+        });
+        function initDeployMode(){
+            if ("LOCAL" == $('#deployMode').val()){
+                $("#configDiv").hide();
+            } else {
+                $("#configDiv").show();
+            }
+        }
+
+        function refresh() {
+            let jobName = "${jobConfig.jobName}";
+            let flinkRunConfig = "${jobConfig.flinkRunConfig?replace("\n", "")!""}";
+            let flinkCheckpointConfig = "${jobConfig.flinkCheckpointConfig?replace("\n", "")!""}";
+            let flinkSql = "${jobConfig.flinkSql?replace("\n", "")!""}";
+            if ($('#jobName').val().replace(/\n/g, '') != jobName
+                || $('#flinkRunConfig').val().replace(/\n/g, '') != flinkRunConfig
+                || $('#flinkCheckpointConfig').val().replace(/\n/g, '') != flinkCheckpointConfig
+                || $('#flinkSql').val().replace(/\n/g, "") != flinkSql) {
+                if (window.confirm('内容有修改，确定不保存要离开当前页面吗?')) {
+                    window.location.reload();
+                }
+            } else {
+                window.location.reload();
+            }
+        }
+
+        window.addEventListener('beforeunload',function(event){
+            // event.returnValue = refresh();
+            return;
+        });
+
+    </script>
 </body>
 </html>

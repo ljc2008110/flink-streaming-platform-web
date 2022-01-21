@@ -152,133 +152,128 @@
         </div><!-- /.row -->
     </div><!-- /.main-content -->
 
-
     <#include "../../layout/bottom.ftl">
 
-</div><!-- /.main-container -->
-
-<script>
-    var flinkSqlVal;
-    myTextarea = document.getElementById("flinkSql");
-    var editor = CodeMirror.fromTextArea(myTextarea, {
-        mode: "flink/x-fsql",
-        lineNumbers: true,//显示行数
-        matchBrackets: true,  // 括号匹配（这个需要导入codemirror的matchbrackets.js文件）
-        indentUnit: 2,//缩进块用多少个空格表示 默认是2
-        theme: "mbo",
-        extraKeys: {'Ctrl': 'autocomplete'},//自定义快捷键
-        hintOptions: {//自定义提示选项
-            completeSingle: false, // 当匹配只有一项的时候是否自动补全
-            tables: {
-                'table.dynamic-table-options.enabled': [],
-                'table.sql-dialect': [],
-                'table.local-time-zone': [],
-                'table.generated-code.max-length': [],
-                'table.exec': ['state.ttl', 'source.idle-timeout',
-                    'source.cdc-events-duplicate', 'window-agg.buffer-size-limit', 'source.cdc-events-duplicate',
-                    'mini-batch.enabled', 'mini-batch.allow-latency', 'mini-batch.enabled', 'mini-batch.allow-latency',
-                    'mini-batch.size', 'sink.not-null-enforcer', 'resource.default-parallelism', 'async-lookup.buffer-capacity',
-                    'async-lookup.timeout'],
-                'table.optimizer': ['distinct-agg.split.enabled',
-                    'distinct-agg.split.bucket-num',
-                    'agg-phase-strategy',
-                    'reuse-sub-plan-enabled',
-                    'reuse-source-enabled',
-                    'source.predicate-pushdown-enabled',
-                    'join-reorder-enabled'],
-            }
-        }
-    });
-
-    editor.setSize('auto', '550px');
-
-    //代码自动提示功能，记住使用cursorActivity事件不要使用change事件，这是一个坑，那样页面直接会卡死
-    editor.on('keypress', function () {
-        editor.showHint()
-    });
-
-
-
-    function getSelectedRange() {
-        return { from: editor.getCursor(true), to: editor.getCursor(false) };
-    }
-
-    function autoFormatSelection() {
-        CodeMirror.commands["selectAll"](editor);
-        var range = getSelectedRange();
-        editor.autoFormatRange(range.from, range.to);
-    }
-
-    function commentSelection(isComment) {
-        var range = getSelectedRange();
-        editor.commentRange(isComment, range.from, range.to);
-    }
-
-
-    $(function () {
-        $("[data-toggle='tooltip']").tooltip();
-    });
-
-
-    function checkSql(){
-        flinkSqlVal=editor.getValue();
-        $.post("../api/checkfSql", {
-                flinkSql:   flinkSqlVal
-            },
-            function (data, status) {
-                $("#errorMessage").removeClass();
-                if (data!=null && data.success){
-                    $("#errorMessage").addClass("alert alert-success alert-dismissable")
-                    $("#errorMessage").html("校验Sql通过");
-                }else{
-                    $("#errorMessage").addClass("alert alert-danger alert-dismissable")
-                    $("#errorMessage").html(data.message);
-
+    <script>
+        var flinkSqlVal;
+        myTextarea = document.getElementById("flinkSql");
+        var editor = CodeMirror.fromTextArea(myTextarea, {
+            mode: "flink/x-fsql",
+            lineNumbers: true,//显示行数
+            matchBrackets: true,  // 括号匹配（这个需要导入codemirror的matchbrackets.js文件）
+            indentUnit: 2,//缩进块用多少个空格表示 默认是2
+            theme: "mbo",
+            extraKeys: {'Ctrl': 'autocomplete'},//自定义快捷键
+            hintOptions: {//自定义提示选项
+                completeSingle: false, // 当匹配只有一项的时候是否自动补全
+                tables: {
+                    'table.dynamic-table-options.enabled': [],
+                    'table.sql-dialect': [],
+                    'table.local-time-zone': [],
+                    'table.generated-code.max-length': [],
+                    'table.exec': ['state.ttl', 'source.idle-timeout',
+                        'source.cdc-events-duplicate', 'window-agg.buffer-size-limit', 'source.cdc-events-duplicate',
+                        'mini-batch.enabled', 'mini-batch.allow-latency', 'mini-batch.enabled', 'mini-batch.allow-latency',
+                        'mini-batch.size', 'sink.not-null-enforcer', 'resource.default-parallelism', 'async-lookup.buffer-capacity',
+                        'async-lookup.timeout'],
+                    'table.optimizer': ['distinct-agg.split.enabled',
+                        'distinct-agg.split.bucket-num',
+                        'agg-phase-strategy',
+                        'reuse-sub-plan-enabled',
+                        'reuse-source-enabled',
+                        'source.predicate-pushdown-enabled',
+                        'join-reorder-enabled'],
                 }
-
             }
-        );
-    }
-
-
-    function addConfig() {
-        flinkSqlVal = editor.getValue();
-        var chk_value =[];//定义一个数组
-        $('input[name="alarmType"]:checked').each(function(){
-            chk_value.push($(this).val());
         });
-        $.post("../api/addConfig", {
-                jobName: $('#jobName').val(),
-                deployMode: $('#deployMode').val(),
-                flinkRunConfig: $('#flinkRunConfig').val(),
-                flinkCheckpointConfig: $('#flinkCheckpointConfig').val(),
-                flinkSql: flinkSqlVal,
-                jobType: $('#jobType').val(),
-                alarmTypes:   chk_value.toString(),
-                extJarPath: $('#extJarPath').val()
-            },
-            function (data, status) {
-                $("#errorMessage").removeClass();
-                if (data != null && data.success) {
-                    skipUrl("/admin/listPage")
-                } else {
-                    $("#errorMessage").addClass("form-group alert alert-danger")
-                    $("#errorMessage").html(data.message);
+
+        editor.setSize('auto', '550px');
+
+        //代码自动提示功能，记住使用cursorActivity事件不要使用change事件，这是一个坑，那样页面直接会卡死
+        editor.on('keypress', function () {
+            editor.showHint()
+        });
+
+        function getSelectedRange() {
+            return { from: editor.getCursor(true), to: editor.getCursor(false) };
+        }
+
+        function autoFormatSelection() {
+            CodeMirror.commands["selectAll"](editor);
+            var range = getSelectedRange();
+            editor.autoFormatRange(range.from, range.to);
+        }
+
+        function commentSelection(isComment) {
+            var range = getSelectedRange();
+            editor.commentRange(isComment, range.from, range.to);
+        }
+
+
+        $(function () {
+            $("[data-toggle='tooltip']").tooltip();
+        });
+
+
+        function checkSql(){
+            flinkSqlVal=editor.getValue();
+            $.post("../api/checkfSql", {
+                    flinkSql:   flinkSqlVal
+                },
+                function (data, status) {
+                    $("#errorMessage").removeClass();
+                    if (data!=null && data.success){
+                        $("#errorMessage").addClass("alert alert-success alert-dismissable")
+                        $("#errorMessage").html("校验Sql通过");
+                    }else{
+                        $("#errorMessage").addClass("alert alert-danger alert-dismissable")
+                        $("#errorMessage").html(data.message);
+
+                    }
 
                 }
-
-            }
-        );
-    }
-
-    $('#deployMode').change(function () {
-        if ("LOCAL" == $(this).val()) {
-            $("#configDiv").hide();
-        } else {
-            $("#configDiv").show();
+            );
         }
-    })
 
-</script>
+
+        function addConfig() {
+            flinkSqlVal = editor.getValue();
+            var chk_value =[];//定义一个数组
+            $('input[name="alarmType"]:checked').each(function(){
+                chk_value.push($(this).val());
+            });
+            $.post("../api/addConfig", {
+                    jobName: $('#jobName').val(),
+                    deployMode: $('#deployMode').val(),
+                    flinkRunConfig: $('#flinkRunConfig').val(),
+                    flinkCheckpointConfig: $('#flinkCheckpointConfig').val(),
+                    flinkSql: flinkSqlVal,
+                    jobType: $('#jobType').val(),
+                    alarmTypes:   chk_value.toString(),
+                    extJarPath: $('#extJarPath').val()
+                },
+                function (data, status) {
+                    $("#errorMessage").removeClass();
+                    if (data != null && data.success) {
+                        skipUrl("/admin/listPage")
+                    } else {
+                        $("#errorMessage").addClass("form-group alert alert-danger")
+                        $("#errorMessage").html(data.message);
+
+                    }
+
+                }
+            );
+        }
+
+        $('#deployMode').change(function () {
+            if ("LOCAL" == $(this).val()) {
+                $("#configDiv").hide();
+            } else {
+                $("#configDiv").show();
+            }
+        })
+
+    </script>
 </body>
 </html>

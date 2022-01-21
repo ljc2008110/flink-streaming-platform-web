@@ -42,6 +42,11 @@
                     </div>
                 <#else >
                     <div class="form-group">
+                        <label class="col-sm-1 control-label">任务ID：</label>
+                        <div class="col-sm-1">
+                            <input type="text"  class="form-control" name="id"  id="id"  value="${jobConfig.id}" readonly />
+                        </div>
+
                         <label for="inputfile" class="col-sm-1 control-label">任务状态：</label>
                         <div class="col-sm-1">
                             <a class="btn btn-sm left-arrow-button
@@ -70,7 +75,7 @@
                         <div class="col-sm-2">
                             <a href="#" class="btn-primary btn btn-sm left-arrow-button">${jobConfig.deployMode!""}</a>
                         </div>
-                        <div class="col-sm-3"></div>
+                        <div class="col-sm-1"></div>
                         <div class="col-sm-2">
                             <a class="btn btn-primary btn-sm left-button" href="/admin/editPage?id=${jobConfig.id!""}" >编辑</a>
                         </div>
