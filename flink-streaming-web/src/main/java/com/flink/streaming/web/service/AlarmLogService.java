@@ -2,7 +2,7 @@ package com.flink.streaming.web.service;
 
 import com.flink.streaming.web.model.dto.AlarmLogDTO;
 import com.flink.streaming.web.model.dto.PageModel;
-import com.flink.streaming.web.model.param.AlartLogParam;
+import com.flink.streaming.web.model.param.AlarmLogParam;
 
 /**
  * @author zhuhuipei
@@ -40,6 +40,6 @@ public interface AlarmLogService {
      * @date 2020-09-25
      * @time 21:51
      */
-    PageModel<AlarmLogDTO> queryAlartLog(AlartLogParam alartLogParam);
+    PageModel<AlarmLogDTO> queryAlarmLog(AlarmLogParam alarmLogParam);
 
 }

@@ -1,4 +1,5 @@
--- 老版本升级需要的sql
+-- descrition: 1.13.2->1.14.0   老版本升级需要的sql
+--
 ALTER TABLE job_config ADD COLUMN job_desc VARCHAR(255) NULL COMMENT '任务描述' AFTER job_name;
 ALTER TABLE job_config_history ADD COLUMN job_desc VARCHAR(255) NULL COMMENT '任务描述' AFTER job_name;
 ALTER TABLE job_config_history add `job_type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '任务类型 0:sql 1:自定义jar' AFTER version ;

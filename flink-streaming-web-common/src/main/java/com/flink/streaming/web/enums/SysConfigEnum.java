@@ -44,12 +44,12 @@ public enum SysConfigEnum {
             SysConfigEnumType.SYS.name()),
 
 
-    DINGDING_ALARM_URL("dingding_alart_url",
+    DINGDING_ALARM_URL("dingding_alarm_url",
             "钉钉告警所需的url（如果不填写将无法告警）",
             SysConfigEnumType.ALART.name()),
 
 
-    CALLBACK_ALARM_URL("callback_alart_url",
+    CALLBACK_ALARM_URL("callback_alarm_url",
             "自定义http回调告警(只需填写url即可如:http://127.0.0.1/alarmCallback 地址必须是alarmCallback )",
             SysConfigEnumType.ALART.name()),
 

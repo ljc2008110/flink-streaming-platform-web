@@ -10,7 +10,6 @@
         <version>2.2.8.RELEASE</version>
     </parent>
 
-
     <groupId>com.streaming.platform.web</groupId>
     <artifactId>flink-streaming-platform-web</artifactId>
     <packaging>pom</packaging>
@@ -37,7 +36,7 @@
         <java_source_version>1.8</java_source_version>
         <java_target_version>1.8</java_target_version>
         <file_encoding>UTF-8</file_encoding>
-        <flink_streaming_version>1.3.2.RELEASE</flink_streaming_version>
+        <flink_streaming_version>1.4.0.RELEASE</flink_streaming_version>
         <flink.version>1.13.2</flink.version>
         <scala.binary.version>2.11</scala.binary.version>
         <spring.boot.version>2.2.8.RELEASE</spring.boot.version>
@@ -126,12 +125,8 @@
                 <artifactId>postgresql</artifactId>
                 <version>42.2.2</version>
             </dependency>
-
-
         </dependencies>
     </dependencyManagement>
-
-
     <build>
         <plugins>
             <plugin>

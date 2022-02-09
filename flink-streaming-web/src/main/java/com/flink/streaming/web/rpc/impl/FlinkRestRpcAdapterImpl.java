@@ -34,6 +34,7 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
     @Autowired
     private SystemConfigService systemConfigService;
 
+
     @Override
     public JobStandaloneInfo getJobInfoForStandaloneByAppId(String appId, DeployModeEnum deployModeEnum) {
         if (StringUtils.isEmpty(appId)) {
@@ -44,10 +45,9 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
         try {
             String url = HttpUtil.buildUrl(systemConfigService.getFlinkHttpAddress(deployModeEnum),
                     FlinkYarnRestUriConstants.getUriJobsForStandalone(appId));
-
-            log.info("[getJobInfoForStandaloneByAppId]请求参数 appId={} url={}", appId, url);
+            log.info("请求参数：jobId={}, url={}", appId, url);
             res = HttpUtil.buildRestTemplate(HttpUtil.TIME_OUT_1_M).getForObject(url, String.class);
-            log.debug("[getJobInfoForStandaloneByAppId]请求参数结果: res={}", res);
+            log.info("请求参数：jobId={}, url={}, result={}", appId, url, res);
             if (StringUtils.isEmpty(res)) {
                 return null;
             } else {
@@ -62,7 +62,6 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
         } catch (Exception e) {
             log.error("json 异常 res={}", res, e);
         }
-
         return jobStandaloneInfo;
     }
 
@@ -106,10 +105,9 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
         }
         String url = HttpUtil.buildUrl(systemConfigService.getFlinkHttpAddress(deployModeEnum),
                 FlinkYarnRestUriConstants.getUriCancelForStandalone(jobId));
-
-        log.info("[cancelJobForFlinkByAppId]请求参数 jobId={} url={}", jobId, url);
+        log.info("请求参数：jobId={}, url={}", jobId, url);
         String res = HttpUtil.buildRestTemplate(HttpUtil.TIME_OUT_1_M).getForObject(url, String.class);
-        log.info("[cancelJobForFlinkByAppId]请求参数结果: res={}", res);
+        log.info("请求参数：jobId={}, url={}, result={}", jobId, url, res);
     }
 
     @Override
@@ -121,7 +119,7 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
             Thread.sleep(HttpUtil.TIME_OUT_3_S);
             String url = HttpUtil.buildUrl(systemConfigService.getFlinkHttpAddress(deployModeEnum),
                     FlinkYarnRestUriConstants.getUriCheckpoints(jobId));
-            log.info("[savepointPath]请求参数 jobId={} url={}", jobId, url);
+            log.info("请求参数：jobId={}, url={}", jobId, url);
             String res = HttpUtil.buildRestTemplate(HttpUtil.TIME_OUT_1_M).getForObject(url, String.class);
             if (StringUtils.isEmpty(res)) {
                 return null;
@@ -172,6 +170,4 @@ public class FlinkRestRpcAdapterImpl implements FlinkRestRpcAdapter {
         }
         return null;
     }
-
-
 }

@@ -18,8 +18,12 @@ https://xie.infoq.cn/article/1af0cb75be056fea788e6c86b
   **主要功能**:包含任务配置、启/停任务、告警、日志等功能，支持sql语法提示，格式化、sql语句校验。 
    
   **目的**:减少开发、降低成本 完全实现sql化 流计算任务。 😂
-  
-   由于前端UI是本人自己写的，不够专业，样式有点丑 请多多包含！！！
+
+
+   该项目获得 [Flink Forward Asia Hackathon (2021) 季军 ](https://mp.weixin.qq.com/s/J2OkX_D34ktfwSfhwdmXYQ)
+
+   [点击查看WEB页面功能显示效果](/docs/img.md)
+
 
 ### 1、主要功能
 
@@ -34,7 +38,7 @@ https://xie.infoq.cn/article/1af0cb75be056fea788e6c86b
    * **[9] 支持自动、手动savepoint备份，并且从savepoint恢复任务。**
    * **[10] 支持批任务如：hive。**
 
-  **目前flink版本已经升级到1.12**
+  **目前flink版本已经升级到1.13.2**
 
 
   **如果您觉得还不错请在右上角点一下star 谢谢 🙏 大家的支持是开源最大动力**
@@ -122,7 +126,7 @@ https://xie.infoq.cn/article/1af0cb75be056fea788e6c86b
 
 **官方相关连接器下载** 
 
-请移步 https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/table/connectors/ 
+请移步 https://nightlies.apache.org/flink/flink-docs-release-1.13/zh/docs/connectors/table/overview/
 
 
 
@@ -169,14 +173,14 @@ https://xie.infoq.cn/article/1af0cb75be056fea788e6c86b
 微信二维码 http://img.ccblog.cn/flink/wx2.png
 
 
- 完全按照flink1.12的连接器相关的配置详见
+ 完全按照flink1.13.2的连接器相关的配置详见
 
-https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/table/connectors/ 
+https://nightlies.apache.org/flink/flink-docs-release-1.13/zh/docs/connectors/table/kafka/
 
 
 
 如果需要使用到连接器请去官方下载
-如：kafka 连接器 https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/table/connectors/kafka.html
+如：kafka 连接器 https://nightlies.apache.org/flink/flink-docs-release-1.13/zh/docs/connectors/table/kafka/
 
 **第一种下载连接器后直接放到 flink/lib/目录下就可以使用了**
 
@@ -213,19 +217,12 @@ https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/table/connector
 ##  七、RoadMap
 
 
-1、 支持除官方以外的连接器  如：阿里云的sls
+1、支持多版本flink
 
-2、 任务告警自动拉起 (完成)
+2、 完善文档 （持续过程）
 
-3、 支持Application模式
+3、UI
 
-4、 完善文档 （持续过程）
-
-5、 支持sql预校验，编写sql的时候语法提示等友好的用户体验(完成)
-
-6、 checkpoint支持rocksDB (完成)
-
-7、 支持jar模式提交任务 (完成)
 
 
 
@@ -244,20 +241,18 @@ https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/table/connector
 http://img.ccblog.cn/flink/dd2.png 
 
 
-微信二维码 http://img.ccblog.cn/flink/wx2.png
-
-
- [微信二维码](http://img.ccblog.cn/flink/wx2.png)
-
- 
- 
  
  ##  十、使用情况 
 
  
 [2021-03-18 和 2021-03-19 两天 做的调研 ](/docs/img2.md)
 
-## 十一、 捐赠
+
+## 十一、 鸣谢
+感谢文香炯（湖南草花互动科技股份公司）贡献前端代码 ：https://gitee.com/wenxiangjiong/flink-streaming-platform-web.git
+
+
+## 十二、 捐赠
 
 [点击打开支付宝捐赠](http://img.ccblog.cn/jz/zfb.jpg)
 

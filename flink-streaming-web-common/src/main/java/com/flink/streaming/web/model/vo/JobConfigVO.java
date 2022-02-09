@@ -33,30 +33,27 @@ public class JobConfigVO {
      * 任务名称
      */
     private String jobName;
-
+    /**
+     * 任务描述
+     */
+    private String jobDesc;
     private String deployMode;
-
 
     /**
      * flink运行配置
      */
     private String jobId;
 
-
     /**
      * 1:开启 0: 关闭
      */
     private Integer isOpen;
 
-
     private String isOpenStr;
 
+    private Integer status;
 
-    private Integer stauts;
-
-
-    private String stautsStr;
-
+    private String statusStr;
 
     private String lastStartTime;
 
@@ -65,7 +62,19 @@ public class JobConfigVO {
     private String flinkRunUrl;
 
     private Integer autoRestore;
-
+    private String flinkSql;
+    /**
+     * flink运行配置
+     */
+    private String flinkRunConfig;
+    /**
+     * checkpointConfig 配置
+     */
+    private String flinkCheckpointConfig;
+    /**
+     * 三方jar udf、 连接器 等jar如http://xxx.xxx.com/flink-streaming-udf.jar
+     */
+    private String extJarPath;
     /**
      * 创建时间
      */
@@ -78,6 +87,7 @@ public class JobConfigVO {
 
 
     private String alarmStrs;
+    private List<Integer> alarmTypes;
 
 
     public static JobConfigVO toVO(JobConfigDTO jobConfigDTO, Map<DeployModeEnum, String> map) {
@@ -87,12 +97,19 @@ public class JobConfigVO {
         JobConfigVO jobConfigVO = new JobConfigVO();
         jobConfigVO.setId(jobConfigDTO.getId());
         jobConfigVO.setJobName(jobConfigDTO.getJobName());
+        jobConfigVO.setJobDesc(jobConfigDTO.getJobDesc());
         jobConfigVO.setJobId(jobConfigDTO.getJobId());
         jobConfigVO.setIsOpen(jobConfigDTO.getIsOpen());
+        jobConfigVO.setFlinkSql(jobConfigDTO.getFlinkSql());
         jobConfigVO.setIsOpenStr(YN.getYNByValue(jobConfigDTO.getIsOpen()).getDescribe());
-        jobConfigVO.setStauts(jobConfigDTO.getStatus().getCode());
-        jobConfigVO.setStautsStr(jobConfigDTO.getStatus().getDesc());
+        jobConfigVO.setStatus(jobConfigDTO.getStatus().getCode());
+        jobConfigVO.setStatusStr(jobConfigDTO.getStatus().getDesc());
         jobConfigVO.setAutoRestore(jobConfigDTO.getAutoRestore());
+        jobConfigVO.setAlarmTypes(jobConfigDTO.getAlarmTypes());
+        buildAlarmStr(jobConfigVO);
+        jobConfigVO.setFlinkRunConfig(jobConfigDTO.getFlinkRunConfig());
+        jobConfigVO.setFlinkCheckpointConfig(jobConfigDTO.getFlinkCheckpointConfig());
+        jobConfigVO.setExtJarPath(jobConfigDTO.getExtJarPath());
         if (jobConfigDTO.getDeployModeEnum() != null) {
             jobConfigVO.setDeployMode(jobConfigDTO.getDeployModeEnum().name());
         }
@@ -144,34 +161,28 @@ public class JobConfigVO {
         return list;
     }
 
-    public static void buildAlarm(List<JobConfigVO> jobConfigVOList,
-                                  Map<Long, List<AlarmTypeEnum>> map) {
-        if (CollectionUtils.isEmpty(map)) {
-            return;
-        }
-        for (JobConfigVO jobConfigVO : jobConfigVOList) {
-            List<AlarmTypeEnum> list = map.get(jobConfigVO.getId());
-            if (CollectionUtil.isNotEmpty(list)) {
-                StringBuilder str = new StringBuilder("[ ");
-                for (AlarmTypeEnum alarmTypeEnum : list) {
-                    switch (alarmTypeEnum) {
-                        case DINGDING:
-                            str.append("钉钉 ");
-                            break;
-                        case CALLBACK_URL:
-                            str.append("回调 ");
-                            break;
-                        case AUTO_START_JOB:
-                            str.append("自动重启 ");
-                            break;
-                        default:
-                            break;
-                    }
+    public static void buildAlarmStr(JobConfigVO jobConfigVO) {
+        List<Integer> list = jobConfigVO.getAlarmTypes();
+        if (CollectionUtil.isNotEmpty(list)) {
+            StringBuilder str = new StringBuilder("[ ");
+        for (Integer code: list) {
+            AlarmTypeEnum alarmTypeEnum = AlarmTypeEnum.getAlarmTypeEnum(code);
+                switch (alarmTypeEnum) {
+                    case DINGDING:
+                        str.append("钉钉 ");
+                        break;
+                    case CALLBACK_URL:
+                        str.append("回调 ");
+                        break;
+                    case AUTO_START_JOB:
+                        str.append("自动重启 ");
+                        break;
+                    default:
+                        break;
                 }
-                str.append("]");
-                jobConfigVO.setAlarmStrs(str.toString());
             }
+            str.append("]");
+            jobConfigVO.setAlarmStrs(str.toString());
         }
-
     }
 }

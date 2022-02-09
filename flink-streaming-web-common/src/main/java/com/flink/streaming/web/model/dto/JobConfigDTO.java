@@ -1,7 +1,6 @@
 package com.flink.streaming.web.model.dto;
 
 import com.flink.streaming.web.common.FlinkJobStatus;
-import com.flink.streaming.web.common.SystemConstants;
 import com.flink.streaming.web.enums.AlarmTypeEnum;
 import com.flink.streaming.web.enums.DeployModeEnum;
 import com.flink.streaming.web.enums.JobConfigStatus;
@@ -14,6 +13,8 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.util.regex.Pattern.*;
 
 /**
  * @author zhuhuipei
@@ -33,6 +34,11 @@ public class JobConfigDTO implements Serializable {
     private String jobName;
 
     /**
+     * 任务描述
+     */
+    private String jobDesc;
+
+    /**
      * flink的模式
      */
     private DeployModeEnum deployModeEnum;
@@ -48,7 +54,7 @@ public class JobConfigDTO implements Serializable {
     private String flinkCheckpointConfig;
 
     /**
-     * flink运行配置
+     * jobID
      */
     private String jobId;
 
@@ -104,9 +110,9 @@ public class JobConfigDTO implements Serializable {
      */
     private String customJarUrl;
 
+    private List<Integer> alarmTypes;
 
     private List<AlarmTypeEnum> alarmTypeEnumList;
-
 
     private Long lastRunLogId;
 
@@ -125,6 +131,12 @@ public class JobConfigDTO implements Serializable {
 
     private String editor;
 
+    private String flinkRunUrl;
+
+    private String alarmStrs;
+
+    private Integer isDeleted;
+
     /**
      * 自动恢复从savepoint；
      * <ul>
@@ -137,7 +149,10 @@ public class JobConfigDTO implements Serializable {
     private Integer autoRestore;
 
     public String getCheckPointPath() {
-        Pattern pattern = Pattern.compile("-checkpointDir\\s(\\S*)");
+        if (Objects.isNull(this.flinkCheckpointConfig)) {
+            return flinkCheckpointConfig;
+        }
+        Pattern pattern = compile("-checkpointDir\\s(\\S*)");
         Matcher matcher = pattern.matcher(flinkCheckpointConfig);
         if(matcher.find()) {
             return matcher.group(1);
@@ -153,6 +168,7 @@ public class JobConfigDTO implements Serializable {
         JobConfig jobConfig = new JobConfig();
         jobConfig.setId(jobConfigDTO.getId());
         jobConfig.setJobName(jobConfigDTO.getJobName());
+        jobConfig.setJobDesc(jobConfigDTO.getJobDesc());
         if (jobConfigDTO.getDeployModeEnum() != null) {
             jobConfig.setDeployMode(jobConfigDTO.getDeployModeEnum().name());
         }
@@ -160,7 +176,7 @@ public class JobConfigDTO implements Serializable {
         jobConfig.setFlinkCheckpointConfig(jobConfigDTO.getFlinkCheckpointConfig());
         jobConfig.setJobId(jobConfigDTO.getJobId());
         jobConfig.setIsOpen(jobConfigDTO.getIsOpen());
-        jobConfig.setStauts(jobConfigDTO.getStatus().getCode());
+        jobConfig.setStatus(jobConfigDTO.getStatus().getCode());
         jobConfig.setLastStartTime(jobConfigDTO.getLastStartTime());
         jobConfig.setVersion(jobConfigDTO.getVersion());
         jobConfig.setFlinkSql(jobConfigDTO.getFlinkSql());
@@ -178,10 +194,9 @@ public class JobConfigDTO implements Serializable {
         jobConfig.setCustomMainClass(jobConfigDTO.getCustomMainClass());
         jobConfig.setCustomJarUrl(jobConfigDTO.getCustomJarUrl());
         jobConfig.setAutoRestore(jobConfigDTO.getAutoRestore());
-
+        jobConfig.setIsDeleted(jobConfigDTO.getIsDeleted());
         return jobConfig;
     }
-
 
     public static JobConfigDTO toDTO(JobConfig jobConfig) {
         if (jobConfig == null) {
@@ -190,12 +205,13 @@ public class JobConfigDTO implements Serializable {
         JobConfigDTO jobConfigDTO = new JobConfigDTO();
         jobConfigDTO.setId(jobConfig.getId());
         jobConfigDTO.setJobName(jobConfig.getJobName());
+        jobConfigDTO.setJobDesc(jobConfig.getJobDesc());
         jobConfigDTO.setDeployModeEnum(DeployModeEnum.getModel(jobConfig.getDeployMode()));
         jobConfigDTO.setFlinkRunConfig(jobConfig.getFlinkRunConfig());
         jobConfigDTO.setFlinkCheckpointConfig(jobConfig.getFlinkCheckpointConfig());
         jobConfigDTO.setJobId(jobConfig.getJobId());
         jobConfigDTO.setIsOpen(jobConfig.getIsOpen());
-        jobConfigDTO.setStatus(JobConfigStatus.getJobConfigStatus(jobConfig.getStauts()));
+        jobConfigDTO.setStatus(JobConfigStatus.getJobConfigStatus(jobConfig.getStatus()));
         jobConfigDTO.setLastStartTime(jobConfig.getLastStartTime());
         jobConfigDTO.setVersion(jobConfig.getVersion());
         jobConfigDTO.setCreateTime(jobConfig.getCreateTime());
@@ -211,17 +227,16 @@ public class JobConfigDTO implements Serializable {
         jobConfigDTO.setCustomMainClass(jobConfig.getCustomMainClass());
         jobConfigDTO.setCustomJarUrl(jobConfig.getCustomJarUrl());
         jobConfigDTO.setAutoRestore(jobConfig.getAutoRestore());
-
+        jobConfigDTO.setIsDeleted(jobConfig.getIsDeleted());
         return jobConfigDTO;
     }
-
 
     public static List<JobConfigDTO> toListDTO(List<JobConfig> jobConfigList) {
         if (CollectionUtils.isEmpty(jobConfigList)) {
             return Collections.emptyList();
         }
 
-        List<JobConfigDTO> jobConfigDTOList = new ArrayList<JobConfigDTO>();
+        List<JobConfigDTO> jobConfigDTOList = new ArrayList<>();
 
         for (JobConfig jobConfig : jobConfigList) {
             jobConfigDTOList.add(toDTO(jobConfig));
@@ -229,7 +244,6 @@ public class JobConfigDTO implements Serializable {
 
         return jobConfigDTOList;
     }
-
 
     public static String buildRunName(String jobName) {
 
@@ -241,7 +255,7 @@ public class JobConfigDTO implements Serializable {
         jobConfig.setStatus(JobConfigStatus.STOP);
         jobConfig.setEditor("sys_auto");
         jobConfig.setId(id);
-        jobConfig.setJobId("");
+        // jobConfig.setJobId("");
         return jobConfig;
     }
 

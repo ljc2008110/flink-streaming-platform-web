@@ -20,7 +20,7 @@ public class TestAlarmLogService extends TestRun {
     private AlarmLogService alarmLogService;
 
     @Test
-    public void addAlartLog() {
+    public void addAlarmLog() {
 
         for (int i = 0; i <20 ; i++) {
             AlarmLogDTO alarmLogDTO = new AlarmLogDTO();
@@ -52,8 +52,8 @@ public class TestAlarmLogService extends TestRun {
 
 
     @Test
-    public void queryAlartLog(){
-        PageModel<AlarmLogDTO> pageModel= alarmLogService.queryAlartLog(null);
+    public void queryAlarmLog(){
+        PageModel<AlarmLogDTO> pageModel= alarmLogService.queryAlarmLog(null);
         System.out.println(pageModel);
     }
 }

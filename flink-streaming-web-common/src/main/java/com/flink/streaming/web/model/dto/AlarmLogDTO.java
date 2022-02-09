@@ -3,7 +3,7 @@ package com.flink.streaming.web.model.dto;
 import cn.hutool.core.collection.CollectionUtil;
 import com.flink.streaming.web.enums.AlarmLogStatusEnum;
 import com.flink.streaming.web.enums.AlarmLogTypeEnum;
-import com.flink.streaming.web.model.entity.AlartLog;
+import com.flink.streaming.web.model.entity.AlarmLog;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -62,52 +62,52 @@ public class AlarmLogDTO {
     private String editor;
 
 
-    public static AlartLog toEntity(AlarmLogDTO alarmLogDTO) {
+    public static AlarmLog toEntity(AlarmLogDTO alarmLogDTO) {
         if (alarmLogDTO == null) {
             return null;
         }
-        AlartLog alartLog = new AlartLog();
-        alartLog.setId(alarmLogDTO.getId());
-        alartLog.setJobConfigId(alarmLogDTO.getJobConfigId());
-        alartLog.setMessage(alarmLogDTO.getMessage());
-        alartLog.setType(alarmLogDTO.getAlarMLogTypeEnum().getCode());
-        alartLog.setStatus(alarmLogDTO.getAlarmLogStatusEnum().getCode());
-        alartLog.setFailLog(alarmLogDTO.getFailLog());
-        alartLog.setCreateTime(alarmLogDTO.getCreateTime());
-        alartLog.setEditTime(alarmLogDTO.getEditTime());
-        alartLog.setCreator(alarmLogDTO.getCreator());
-        alartLog.setEditor(alarmLogDTO.getEditor());
-        alartLog.setJobName(alarmLogDTO.getJobName());
-        return alartLog;
+        AlarmLog alarmLog = new AlarmLog();
+        alarmLog.setId(alarmLogDTO.getId());
+        alarmLog.setJobConfigId(alarmLogDTO.getJobConfigId());
+        alarmLog.setMessage(alarmLogDTO.getMessage());
+        alarmLog.setType(alarmLogDTO.getAlarMLogTypeEnum().getCode());
+        alarmLog.setStatus(alarmLogDTO.getAlarmLogStatusEnum().getCode());
+        alarmLog.setFailLog(alarmLogDTO.getFailLog());
+        alarmLog.setCreateTime(alarmLogDTO.getCreateTime());
+        alarmLog.setEditTime(alarmLogDTO.getEditTime());
+        alarmLog.setCreator(alarmLogDTO.getCreator());
+        alarmLog.setEditor(alarmLogDTO.getEditor());
+        alarmLog.setJobName(alarmLogDTO.getJobName());
+        return alarmLog;
     }
 
-    public static AlarmLogDTO toDTO(AlartLog alartLog) {
-        if (alartLog == null) {
+    public static AlarmLogDTO toDTO(AlarmLog alarmLog) {
+        if (alarmLog == null) {
             return null;
         }
         AlarmLogDTO alarmLogDTO = new AlarmLogDTO();
-        alarmLogDTO.setId(alartLog.getId());
-        alarmLogDTO.setJobConfigId(alartLog.getJobConfigId());
-        alarmLogDTO.setMessage(alartLog.getMessage());
-        alarmLogDTO.setAlarMLogTypeEnum(AlarmLogTypeEnum.getAlarmLogTypeEnum(alartLog.getType()));
-        alarmLogDTO.setAlarmLogStatusEnum(AlarmLogStatusEnum.getAlarmLogStatusEnum(alartLog.getStatus()));
-        alarmLogDTO.setFailLog(alartLog.getFailLog());
-        alarmLogDTO.setCreateTime(alartLog.getCreateTime());
-        alarmLogDTO.setEditTime(alartLog.getEditTime());
-        alarmLogDTO.setCreator(alartLog.getCreator());
-        alarmLogDTO.setEditor(alartLog.getEditor());
-        alarmLogDTO.setJobName(alartLog.getJobName());
+        alarmLogDTO.setId(alarmLog.getId());
+        alarmLogDTO.setJobConfigId(alarmLog.getJobConfigId());
+        alarmLogDTO.setMessage(alarmLog.getMessage());
+        alarmLogDTO.setAlarMLogTypeEnum(AlarmLogTypeEnum.getAlarmLogTypeEnum(alarmLog.getType()));
+        alarmLogDTO.setAlarmLogStatusEnum(AlarmLogStatusEnum.getAlarmLogStatusEnum(alarmLog.getStatus()));
+        alarmLogDTO.setFailLog(alarmLog.getFailLog());
+        alarmLogDTO.setCreateTime(alarmLog.getCreateTime());
+        alarmLogDTO.setEditTime(alarmLog.getEditTime());
+        alarmLogDTO.setCreator(alarmLog.getCreator());
+        alarmLogDTO.setEditor(alarmLog.getEditor());
+        alarmLogDTO.setJobName(alarmLog.getJobName());
         return alarmLogDTO;
     }
 
-    public static List<AlarmLogDTO> toListDTO(List<AlartLog> alartLogList) {
-        if (CollectionUtil.isEmpty(alartLogList)) {
+    public static List<AlarmLogDTO> toListDTO(List<AlarmLog> alarmLogList) {
+        if (CollectionUtil.isEmpty(alarmLogList)) {
             return Collections.emptyList();
         }
         List<AlarmLogDTO> list = new ArrayList<>();
-        for (AlartLog alartLog : alartLogList) {
-            AlarmLogDTO alarmLogDTO = AlarmLogDTO.toDTO(alartLog);
-            if (alartLog != null) {
+        for (AlarmLog alarmLog : alarmLogList) {
+            AlarmLogDTO alarmLogDTO = AlarmLogDTO.toDTO(alarmLog);
+            if (alarmLog != null) {
                 list.add(alarmLogDTO);
             }
         }

@@ -1,11 +1,11 @@
 package com.flink.streaming.web.service.impl;
 
 import com.flink.streaming.web.enums.YN;
-import com.flink.streaming.web.mapper.AlartLogMapper;
+import com.flink.streaming.web.mapper.AlarmLogMapper;
 import com.flink.streaming.web.model.dto.AlarmLogDTO;
 import com.flink.streaming.web.model.dto.PageModel;
-import com.flink.streaming.web.model.entity.AlartLog;
-import com.flink.streaming.web.model.param.AlartLogParam;
+import com.flink.streaming.web.model.entity.AlarmLog;
+import com.flink.streaming.web.model.param.AlarmLogParam;
 import com.flink.streaming.web.service.AlarmLogService;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -25,31 +25,31 @@ public class AlarmLogServiceImpl implements AlarmLogService {
 
 
     @Autowired
-    private AlartLogMapper alartLogMapper;
+    private AlarmLogMapper alarmLogMapper;
 
     @Override
     public void addAlarmLog(AlarmLogDTO alarmLogDTO) {
         if (alarmLogDTO == null) {
             return;
         }
-        alartLogMapper.insert(AlarmLogDTO.toEntity(alarmLogDTO));
+        alarmLogMapper.insert(AlarmLogDTO.toEntity(alarmLogDTO));
     }
 
 
     @Override
     public AlarmLogDTO findLogById(Long id) {
-        return AlarmLogDTO.toDTO(alartLogMapper.selectByPrimaryKey(id));
+        return AlarmLogDTO.toDTO(alarmLogMapper.selectByPrimaryKey(id));
     }
 
     @Override
-    public PageModel<AlarmLogDTO> queryAlartLog(AlartLogParam alartLogParam) {
-        if (alartLogParam == null) {
-            alartLogParam = new AlartLogParam();
+    public PageModel<AlarmLogDTO> queryAlarmLog(AlarmLogParam alarmLogParam) {
+        if (alarmLogParam == null) {
+            alarmLogParam = new AlarmLogParam();
         }
-        PageHelper.startPage(alartLogParam.getPageNum(), alartLogParam.getPageSize(), YN.Y.getCode());
+        PageHelper.startPage(alarmLogParam.getPageNum(), alarmLogParam.getPageSize(), YN.Y.getCode());
 
         //只能查最近30天的
-        Page<AlartLog> page = alartLogMapper.selectByParam(alartLogParam);
+        Page<AlarmLog> page = alarmLogMapper.selectByParam(alarmLogParam);
         if (page == null) {
             return null;
         }
