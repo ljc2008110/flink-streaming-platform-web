@@ -197,7 +197,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                 + buildMarkdown("恢复失败任务：", restoreFail);
         if (!alarmMsg.isEmpty()) {
             alarmMsg = "## Flink任务状态检测通知\n" + alarmMsg;
-            alarmServiceAO.justDingdingAlarm(alarmMsg, jobConfigDTOList.stream().map(JobConfigDTO::getId).collect(Collectors.toList()));
+            alarmServiceAO.justDingdingAlarm(alarmMsg, doList.stream().map(JobConfigDTO::getId).collect(Collectors.toList()));
         }
     }
 
