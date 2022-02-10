@@ -78,14 +78,22 @@ public class Test {
         list.add("a");
         list.add("b");
         list.add("c");
-        List<String> copyList = Arrays.asList(new String[list.size()]);
-        System.out.println(copyList.size() + " : " + list.size());
-        Collections.copy(copyList, list);
-        copyList.stream().forEach(str -> {
+        //List<String> copyList = Arrays.asList(new String[list.size()]);
+        //System.out.println(copyList.size() + " : " + list.size());
+        //Collections.copy(copyList, list);
+        //copyList.stream().forEach(str -> {
+        //    System.out.println(list);
+        //    System.out.println(str);
+        //    list.remove(str);
+        //});
+
+        List<String> copyList2 =new LinkedList<>(list);
+        copyList2.stream().forEach(str -> {
             System.out.println(list);
             System.out.println(str);
             list.remove(str);
         });
+
 
     }
 

@@ -157,8 +157,7 @@ public class TaskServiceAOImpl implements TaskServiceAO {
         List<String> toUnexceptedJobList = new ArrayList<>();
         List<String> restoreFail = new ArrayList<>();
         // 复制集合进行处理，清除异常任务集合
-        final List<JobConfigDTO> doList = Arrays.asList(new JobConfigDTO[jobConfigDTOList.size()]);
-        Collections.copy(doList, jobConfigDTOList);
+        final List<JobConfigDTO> doList = new ArrayList<>(jobConfigDTOList);
         jobConfigDTOList.clear();
         // 检查任务状态是否一致，并恢复失败和未知状态任务，退出任务不恢复，状态变更的任务进行合并通知
         doList.stream().filter(jobConfigDTO -> !JobTypeEnum.SQL_BATCH.equals(jobConfigDTO.getJobTypeEnum()))
