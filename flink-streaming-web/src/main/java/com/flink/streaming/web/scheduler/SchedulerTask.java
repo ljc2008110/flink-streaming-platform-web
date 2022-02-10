@@ -89,6 +89,32 @@ public class SchedulerTask {
         }
     }
 
+    /**
+     * 每隔1小时进行一次自动savePoint
+     *
+     * @author zhuhuipei
+     * @date 2020-09-22
+     * @time 23:45
+     */
+    @Async("taskExecutor")
+    @Scheduled(cron = "0 0 */1 * * ?")
+    public void autoSavePoint() {
+        if (!systemConfigService.autoSavepoint()){
+            log.info("#####没有开启自动savePoint#######");
+            return;
+        }
+
+        if (!ipStatusService.isLeader()) {
+            return;
+        }
+        log.info("#####[task]开始自动执行savePoint#######");
+        try {
+            taskServiceAO.autoSavePoint();
+        } catch (Exception e) {
+            log.error("autoSavePoint is error", e);
+        }
+    }
+
 //    /**
 //     * 每隔20分钟进行一次对停止任务进行是否在yarn上运行的检查
 //     *
@@ -109,34 +135,5 @@ public class SchedulerTask {
 //            log.error("checkYarnJobByStop is error", e);
 //        }
 //    }
-
-
-    /**
-     * 每隔1小时进行一次自动savePoint
-     *
-     * @author zhuhuipei
-     * @date 2020-09-22
-     * @time 23:45
-     */
-    @Async("taskExecutor")
-    @Scheduled(cron = "0 0 */1 * * ?")
-  //@Scheduled(cron = "0 */1 * * * ?")
-    public void autoSavePoint() {
-        if (!systemConfigService.autoSavepoint()){
-            log.info("#####没有开启自动savePoint#######");
-            return;
-        }
-
-        if (!ipStatusService.isLeader()) {
-            return;
-        }
-        log.info("#####[task]开始自动执行savePoint#######");
-        try {
-            taskServiceAO.autoSavePoint();
-        } catch (Exception e) {
-            log.error("autoSavePoint is error", e);
-        }
-    }
-
 
 }

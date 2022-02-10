@@ -4,8 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,6 +73,19 @@ public class Test {
             System.out.println("abc:" + matcher.group(1) + ":abc");
 
         }
+
+        List<String> list = new LinkedList<>();
+        list.add("a");
+        list.add("b");
+        list.add("c");
+        List<String> copyList = Arrays.asList(new String[list.size()]);
+        System.out.println(copyList.size() + " : " + list.size());
+        Collections.copy(copyList, list);
+        copyList.stream().forEach(str -> {
+            System.out.println(list);
+            System.out.println(str);
+            list.remove(str);
+        });
 
     }
 

@@ -156,7 +156,12 @@ public class TaskServiceAOImpl implements TaskServiceAO {
         List<String> toRestoreJobList = new ArrayList<>();
         List<String> toUnexceptedJobList = new ArrayList<>();
         List<String> restoreFail = new ArrayList<>();
-        jobConfigDTOList.stream().filter(jobConfigDTO -> !JobTypeEnum.SQL_BATCH.equals(jobConfigDTO.getJobTypeEnum()))
+        // 复制集合进行处理，清除异常任务集合
+        final List<JobConfigDTO> doList = Arrays.asList(new JobConfigDTO[jobConfigDTOList.size()]);
+        Collections.copy(doList, jobConfigDTOList);
+        jobConfigDTOList.clear();
+        // 检查任务状态是否一致，并恢复失败和未知状态任务，退出任务不恢复，状态变更的任务进行合并通知
+        doList.stream().filter(jobConfigDTO -> !JobTypeEnum.SQL_BATCH.equals(jobConfigDTO.getJobTypeEnum()))
                 .forEach(jobConfigDTO -> {
                     // 获取flink任务实时状态
                     JobStandaloneInfo jobStandaloneInfo = flinkRestRpcAdapter.getJobInfoForStandaloneByAppId(
@@ -174,7 +179,6 @@ public class TaskServiceAOImpl implements TaskServiceAO {
                         // 变更任务状态
                         log.info("发现本地任务状态和Cluster上不一致，准备自动更新任务状态 jobStandaloneInfo={}", jobStandaloneInfo);
                         updateJobConfigStatus(jobConfigDTO.getId(), flinkStatus);
-
                     }
                     // 针对失败和未启动任务进行恢复拉起，拉起后更新job状态
                     if (JobConfigStatus.FAIL.equals(jobConfigDTO.getStatus())
