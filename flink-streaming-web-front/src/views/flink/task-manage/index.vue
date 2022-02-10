@@ -108,7 +108,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="deployModeEnum" :show-overflow-tooltip="true" label="运行模式" min-width="80" align="center" />
-        <el-table-column prop="jobId" :show-overflow-tooltip="true" label="Flink任务Id" width="275" align="center">
+        <el-table-column prop="jobId" :show-overflow-tooltip="true" label="Flink任务Id" width="290" align="center">
           <template slot-scope="scope">
             <i
               v-if="scope.row.jobId"
@@ -120,12 +120,12 @@
             <el-link v-if="scope.row.jobId" :href="scope.row.flinkRunUrl" target="_blank">{{ scope.row.jobId }}</el-link>
           </template>
         </el-table-column>
-        <el-table-column prop="editTime" :show-overflow-tooltip="true" label="上次运行" min-width="100" width="135" align="center">
+        <el-table-column prop="editTime" :show-overflow-tooltip="true" label="上次运行" min-width="100" align="center">
           <template slot-scope="scope">
             <span>{{ formatDateTime(scope.row.editTime) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="editor" :show-overflow-tooltip="true" label="提交人" min-width="70" width="80" align="center" />
+        <el-table-column prop="editor" :show-overflow-tooltip="true" label="提交人" min-width="50" align="center" />
         <el-table-column :show-overflow-tooltip="true" label="版本" min-width="50" align="center">
           <template slot-scope="scope">
             <router-link :to="{name:'HistoryTask', params:{flag:'tasklist', context:queryContent(), jobConfigId:scope.row.id}}">
@@ -143,7 +143,7 @@
             </router-link>
           </template>
         </el-table-column>
-        <el-table-column label="SP恢复" :show-overflow-tooltip="true" align="center" width="65">
+        <el-table-column label="SP恢复" :show-overflow-tooltip="true" align="center" width="65" fixed="right">
           <template slot-scope="scope">
             <el-switch
               v-model="scope.row.autoRestore"
